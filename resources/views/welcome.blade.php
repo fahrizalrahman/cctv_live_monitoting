@@ -145,6 +145,7 @@
             <!-- Video Player Area -->
             <div class="aspect-video bg-[#070b12] overflow-hidden flex items-center justify-center relative">
                 <video id="modal-video" class="w-full h-full object-cover" autoplay muted playsinline controls></video>
+                <iframe id="modal-video-frame" class="w-full h-full border-0 hidden" allow="fullscreen; autoplay"></iframe>
                 <div id="modal-player-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-[#070b12]/90 p-4 text-center z-10">
                     <i data-lucide="video-off" class="w-8 h-8 text-rose-500 mb-2"></i>
                     <span class="block text-xs font-semibold text-slate-300">Gagal Memutar Live Stream</span>
@@ -253,8 +254,9 @@
                 // Update Modal Title
                 document.getElementById('modal-name').textContent = cctv.name;
 
-                // Play video HLS
+                // Elements
                 const video = document.getElementById('modal-video');
+                const iframe = document.getElementById('modal-video-frame');
                 const errorAlert = document.getElementById('modal-player-error');
                 
                 // Clear active streams first
@@ -265,36 +267,41 @@
                 video.pause();
                 video.removeAttribute('src');
                 video.load();
+                iframe.removeAttribute('src');
                 errorAlert.classList.add('hidden');
 
-                const playbackUrl = getPlaybackUrl(cctv);
+                if (cctv.stream_url && cctv.stream_url.toLowerCase().startsWith('rtsp://')) {
+                    // Use go2rtc WebRTC/MSE universal player for RTSP
+                    video.classList.add('hidden');
+                    iframe.classList.remove('hidden');
+                    // Append background=false so it fits nicely
+                    iframe.src = `{{ url('/') }}/go2rtc/stream.html?src=cctv_${cctv.id}&background=false`;
+                } else {
+                    // Native Video playback for raw HTTP/HLS links
+                    iframe.classList.add('hidden');
+                    video.classList.remove('hidden');
+                    const playbackUrl = cctv.stream_url;
 
-                // Initialize HLS.js or native player
-                if (Hls.isSupported()) {
-                    const hls = new Hls();
-                    hls.loadSource(playbackUrl);
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        video.play().catch(e => {
-                            console.log('Autoplay blocked:', e);
+                    if (Hls.isSupported()) {
+                        const hls = new Hls();
+                        hls.loadSource(playbackUrl);
+                        hls.attachMedia(video);
+                        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                            video.play().catch(e => console.log('Autoplay blocked:', e));
                         });
-                    });
-                    hls.on(Hls.Events.ERROR, function (event, data) {
-                        if (data.fatal) {
+                        hls.on(Hls.Events.ERROR, function (event, data) {
+                            if (data.fatal) errorAlert.classList.remove('hidden');
+                        });
+                        currentHls = hls;
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = playbackUrl;
+                        video.addEventListener('loadedmetadata', function() {
+                            video.play().catch(e => console.log('Autoplay blocked:', e));
+                        });
+                        video.addEventListener('error', function() {
                             errorAlert.classList.remove('hidden');
-                        }
-                    });
-                    currentHls = hls;
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = playbackUrl;
-                    video.addEventListener('loadedmetadata', function() {
-                        video.play().catch(e => {
-                            console.log('Autoplay blocked:', e);
                         });
-                    });
-                    video.addEventListener('error', function() {
-                        errorAlert.classList.remove('hidden');
-                    });
+                    }
                 }
 
                 // Show Modal Card

@@ -113,7 +113,7 @@ class CctvController extends Controller
         try {
             $cctvs = Cctv::all();
             
-            $yamlContent = "streams:\n";
+            $yamlContent = "api:\n  origin: '*'\n\nstreams:\n";
             foreach ($cctvs as $cctv) {
                 if (str_starts_with(strtolower($cctv->stream_url), 'rtsp://')) {
                     $yamlContent .= "  cctv_{$cctv->id}: \"{$cctv->stream_url}\"\n";
