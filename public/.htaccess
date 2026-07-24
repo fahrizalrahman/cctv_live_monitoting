@@ -18,11 +18,10 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Proxy go2rtc WebSockets
-    RewriteCond %{HTTP:Upgrade} websocket [NC]
-    RewriteRule ^go2rtc/(.*)$ ws://127.0.0.1:1984/$1 [P,L]
+    # Proxy go2rtc WebSockets (Force ws:// for api/ws path)
+    RewriteRule ^go2rtc/api/ws(.*)$ ws://127.0.0.1:1984/api/ws$1 [P,L]
 
-    # Proxy go2rtc HTTP requests
+    # Proxy go2rtc HTTP requests (Everything else)
     RewriteRule ^go2rtc/(.*)$ http://127.0.0.1:1984/$1 [P,L]
 
     # Send Requests To Front Controller...
