@@ -271,11 +271,19 @@
                 errorAlert.classList.add('hidden');
 
                 if (cctv.stream_url && cctv.stream_url.toLowerCase().startsWith('rtsp://')) {
-                    // Use go2rtc WebRTC/MSE universal player for RTSP
-                    video.classList.add('hidden');
-                    iframe.classList.remove('hidden');
-                    // Append background=false so it fits nicely
-                    iframe.src = `{{ url('/') }}/go2rtc/stream.html?src=cctv_${cctv.id}&background=false`;
+                    // Use go2rtc MP4 stream (MSE) which relies purely on HTTP (no WebSockets needed)
+                    iframe.classList.add('hidden');
+                    video.classList.remove('hidden');
+                    video.src = `{{ url('/') }}/go2rtc/api/stream.mp4?src=cctv_${cctv.id}`;
+                    
+                    video.addEventListener('loadedmetadata', function() {
+                        video.play().catch(e => console.log('Autoplay blocked:', e));
+                    });
+                    
+                    video.addEventListener('error', function() {
+                        // MEDIA_ERR_SRC_NOT_SUPPORTED usually means H.265 codec in Chrome
+                        errorAlert.classList.remove('hidden');
+                    });
                 } else {
                     // Native Video playback for raw HTTP/HLS links
                     iframe.classList.add('hidden');
