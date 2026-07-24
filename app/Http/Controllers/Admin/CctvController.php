@@ -116,7 +116,8 @@ class CctvController extends Controller
             $yamlContent = "api:\n  origin: '*'\n\nstreams:\n";
             foreach ($cctvs as $cctv) {
                 if (str_starts_with(strtolower($cctv->stream_url), 'rtsp://')) {
-                    $yamlContent .= "  cctv_{$cctv->id}: \"{$cctv->stream_url}\"\n";
+                    // Prepend ffmpeg: and append #video=h264#audio=opus to transcode H.265 to H.264 automatically
+                    $yamlContent .= "  cctv_{$cctv->id}: \"ffmpeg:{$cctv->stream_url}#video=h264#audio=opus\"\n";
                 }
             }
             

@@ -2,5 +2,5 @@ api:
   origin: '*'
 
 streams:
-  cctv_5: "rtsp://kominfo1:komin123@20.22.80.2:554/Streaming/Channels/102/?transportmode=multicast"
-  cctv_7: "rtsp://kominfo1:komin123@20.22.80.5:554/Streaming/Channels/102/?transportmode=multicast"
+  cctv_5: "ffmpeg:rtsp://kominfo1:komin123@20.22.80.2:554/Streaming/Channels/102/?transportmode=multicast#video=h264#audio=opus"
+  cctv_7: "ffmpeg:rtsp://kominfo1:komin123@20.22.80.5:554/Streaming/Channels/102/?transportmode=multicast#video=h264#audio=opus"
