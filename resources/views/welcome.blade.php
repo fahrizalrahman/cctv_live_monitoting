@@ -235,11 +235,7 @@
             function getPlaybackUrl(cctv) {
                 if (!cctv.stream_url) return '';
                 if (cctv.stream_url.toLowerCase().startsWith('rtsp://')) {
-                    if (window.location.protocol === 'https:') {
-                        return `/stream/api/stream.m3u8?src=cctv_${cctv.id}`;
-                    } else {
-                        return `http://${window.location.hostname}:1984/api/stream.m3u8?src=cctv_${cctv.id}`;
-                    }
+                    return `{{ url('/') }}/go2rtc/api/stream.m3u8?src=cctv_${cctv.id}`;
                 }
                 return cctv.stream_url;
             }

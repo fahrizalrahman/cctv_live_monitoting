@@ -18,6 +18,9 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
+    # Proxy go2rtc requests
+    RewriteRule ^go2rtc/(.*)$ http://127.0.0.1:1984/$1 [P,L]
+
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
