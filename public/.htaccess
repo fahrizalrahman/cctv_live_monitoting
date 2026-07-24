@@ -20,7 +20,6 @@
 
     # Proxy go2rtc WebSockets
     RewriteCond %{HTTP:Upgrade} websocket [NC]
-    RewriteCond %{HTTP:Connection} upgrade [NC]
     RewriteRule ^go2rtc/(.*)$ ws://127.0.0.1:1984/$1 [P,L]
 
     # Proxy go2rtc HTTP requests
