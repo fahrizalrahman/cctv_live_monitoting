@@ -3,7 +3,7 @@
 @section('page_title', 'Create CCTV')
 
 @section('content')
-<div class="bg-[#0d1321]/30 border border-slate-800 rounded-3xl p-6 shadow-xl max-w-4xl mx-auto">
+<div class="bg-[#0d1321]/30 border border-slate-800 rounded-3xl p-6 shadow-xl w-full">
     <div class="flex items-center gap-3 mb-6">
         <a href="{{ route('admin.cctvs.index') }}" class="p-2 bg-slate-800/40 text-slate-400 hover:text-slate-200 rounded-xl border border-slate-800 transition-all">
             <i data-lucide="arrow-left" class="w-4 h-4"></i>

@@ -3,7 +3,7 @@
 @section('page_title', 'Roles & Permissions')
 
 @section('content')
-<div class="bg-[#0d1321]/30 border border-slate-800 rounded-3xl p-6 shadow-xl max-w-5xl mx-auto">
+<div class="bg-[#0d1321]/30 border border-slate-800 rounded-3xl p-6 shadow-xl w-full">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
             <h2 class="text-xl font-bold text-slate-200">Access Roles Directory</h2>

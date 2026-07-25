@@ -3,7 +3,7 @@
 @section('page_title', 'App Settings')
 
 @section('content')
-<div class="bg-[#0d1321]/30 border border-slate-800 rounded-3xl p-6 shadow-xl max-w-xl mx-auto">
+<div class="bg-[#0d1321]/30 border border-slate-800 rounded-3xl p-6 shadow-xl w-full">
     <div class="flex items-center gap-3 mb-6">
         <div class="p-2 bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/20">
             <i data-lucide="settings" class="w-5 h-5"></i>
