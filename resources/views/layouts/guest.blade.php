@@ -1,11 +1,16 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
+        @php
+            $appName = \App\Models\Setting::where('key', 'app_name')->first();
+            $appNameDisplay = $appName && $appName->value ? $appName->value : 'CCTV MONITOR';
+            $appLogo = \App\Models\Setting::where('key', 'app_logo')->first();
+        @endphp
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'CCTV Live Monitor') }} - Login</title>
+        <title>{{ $appNameDisplay }} - Login</title>
 
         <!-- Google Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,10 +40,16 @@
         <div class="w-full max-w-md px-6 relative z-10">
             <!-- App Logo/Header -->
             <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center p-3.5 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-600/30 mb-4 ring-4 ring-indigo-500/10">
-                    <i data-lucide="video" class="w-8 h-8"></i>
-                </div>
-                <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">CCTV MONITOR</h1>
+                @if($appLogo && $appLogo->value)
+                    <div class="inline-flex items-center justify-center mb-4">
+                        <img src="{{ Storage::url($appLogo->value) }}" alt="Logo" class="h-16 object-contain" />
+                    </div>
+                @else
+                    <div class="inline-flex items-center justify-center p-3.5 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-600/30 mb-4 ring-4 ring-indigo-500/10">
+                        <i data-lucide="video" class="w-8 h-8"></i>
+                    </div>
+                @endif
+                <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">{{ $appNameDisplay }}</h1>
                 <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest font-semibold">Security Control Center</p>
             </div>
 
