@@ -47,23 +47,69 @@
             ::-webkit-scrollbar-thumb:hover {
                 background: #475569;
             }
+            
+            /* Desktop/Mobile handling without Tailwind JIT dependency */
+            /* Mobile ( < 1024px) */
+            @media (max-width: 1023px) {
+                .mobile-header-only {
+                    display: flex !important;
+                }
+                .mobile-btn-only {
+                    display: block !important;
+                }
+                .sidebar-responsive {
+                    position: fixed !important;
+                    transform: translateX(-100%);
+                }
+                .sidebar-responsive.sidebar-open {
+                    transform: translateX(0);
+                }
+            }
+            
+            /* Desktop ( >= 1024px ) */
+            @media (min-width: 1024px) {
+                .mobile-header-only, .mobile-btn-only, #sidebar-backdrop {
+                    display: none !important;
+                }
+                .sidebar-responsive {
+                    position: static !important;
+                    transform: none !important;
+                }
+            }
         </style>
         @stack('styles')
     </head>
     <body class="antialiased bg-[#090d16] text-slate-200 min-h-screen overflow-x-hidden">
-        <div class="flex min-h-screen">
+        @php
+            $appLogo = \App\Models\Setting::where('key', 'app_logo')->first();
+            $appName = \App\Models\Setting::where('key', 'app_name')->first();
+            $appNameDisplay = $appName && $appName->value ? $appName->value : 'CCTV MONITOR';
+        @endphp
+        <div class="flex min-h-screen relative">
+            <!-- Sidebar Backdrop (Mobile) -->
+            <div id="sidebar-backdrop" class="fixed inset-0 z-40 backdrop-blur-sm" style="display: none; background-color: rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.3s;"></div>
+
             <!-- Sidebar -->
-            <aside class="w-64 bg-[#0d1321] border-r border-slate-800 flex flex-col justify-between shrink-0">
+            <aside id="sidebar" class="sidebar-responsive inset-y-0 left-0 z-50 w-64 bg-[#0d1321] border-r border-slate-800 flex flex-col justify-between shrink-0 transition-transform duration-300">
                 <div>
                     <!-- Logo / Brand -->
-                    <div class="h-16 flex items-center px-6 border-b border-slate-800 gap-3">
-                        <div class="bg-indigo-600 p-2 rounded-lg text-white shadow-lg shadow-indigo-500/30">
-                            <i data-lucide="video" class="w-6 h-6"></i>
+                    <div class="h-16 flex items-center justify-between px-6 border-b border-slate-800">
+                        <div class="flex items-center gap-3">
+                            @if($appLogo && $appLogo->value)
+                                <img src="{{ Storage::url($appLogo->value) }}" alt="Logo" class="h-8 object-contain" />
+                            @else
+                                <div class="bg-indigo-600 p-2 rounded-lg text-white shadow-lg shadow-indigo-500/30">
+                                    <i data-lucide="video" class="w-6 h-6"></i>
+                                </div>
+                            @endif
+                            <div>
+                                <span class="font-bold text-lg tracking-wide bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">{{ $appNameDisplay }}</span>
+                                <span class="block text-[10px] text-slate-500 font-medium tracking-widest uppercase">Live Streaming</span>
+                            </div>
                         </div>
-                        <div>
-                            <span class="font-bold text-lg tracking-wide bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">CCTV MONITOR</span>
-                            <span class="block text-[10px] text-slate-500 font-medium tracking-widest uppercase">Live Streaming</span>
-                        </div>
+                        <button id="close-sidebar-btn" class="mobile-btn-only p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
                     </div>
 
                     <!-- Navigation Links -->
@@ -122,21 +168,38 @@
             </aside>
 
             <!-- Main Content Area -->
-            <div class="flex-1 flex flex-col overflow-y-auto max-h-screen">
+            <div class="flex-1 flex flex-col overflow-y-auto max-h-screen w-full relative">
+                
+                <!-- Mobile Header (Hidden on Desktop) -->
+                <div class="mobile-header-only items-center justify-between p-4 border-b border-slate-800 bg-[#0d1321] shrink-0 sticky top-0 z-30">
+                    <div class="flex items-center gap-3">
+                        @if($appLogo && $appLogo->value)
+                            <img src="{{ Storage::url($appLogo->value) }}" alt="Logo" class="h-6 object-contain" />
+                        @else
+                            <div class="bg-indigo-600 p-1.5 rounded-md text-white shadow-lg shadow-indigo-500/30">
+                                <i data-lucide="video" class="w-5 h-5"></i>
+                            </div>
+                        @endif
+                        <span class="font-bold text-base tracking-wide bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">{{ $appNameDisplay }}</span>
+                    </div>
+                    <button id="mobile-menu-btn" class="p-2 bg-slate-800/50 text-slate-300 hover:text-white rounded-lg border border-slate-700 transition-all">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                </div>
 
 
                 <!-- Page Content -->
-                <main class="flex-1 p-8">
+                <main class="flex-1 p-4 md:p-6 lg:p-8 flex flex-col min-h-0">
                     <!-- Session Status Alerts -->
                     @if(session('success'))
-                        <div class="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm flex items-center gap-3 shadow-lg shadow-emerald-500/5">
+                        <div class="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm flex items-center gap-3 shadow-lg shadow-emerald-500/5 shrink-0">
                             <i data-lucide="check-circle" class="w-5 h-5 shrink-0"></i>
                             <span>{{ session('success') }}</span>
                         </div>
                     @endif
 
                     @if(session('error'))
-                        <div class="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex items-center gap-3 shadow-lg shadow-rose-500/5">
+                        <div class="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex items-center gap-3 shadow-lg shadow-rose-500/5 shrink-0">
                             <i data-lucide="alert-circle" class="w-5 h-5 shrink-0"></i>
                             <span>{{ session('error') }}</span>
                         </div>
@@ -173,6 +236,44 @@
             }
             setInterval(updateClock, 1000);
             updateClock();
+
+            // Mobile Sidebar Toggle Logic
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const mobileBtn = document.getElementById('mobile-menu-btn');
+            const closeBtn = document.getElementById('close-sidebar-btn');
+
+            function openSidebar() {
+                sidebar.classList.add('sidebar-open');
+                backdrop.style.display = 'block';
+                // slight delay to allow display:block to apply before animating opacity
+                setTimeout(() => {
+                    backdrop.style.opacity = '1';
+                }, 10);
+                document.body.style.overflow = 'hidden'; // Prevent scrolling on main body
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('sidebar-open');
+                backdrop.style.opacity = '0';
+                setTimeout(() => {
+                    backdrop.style.display = 'none';
+                }, 300); // match transition duration
+                document.body.style.overflow = '';
+            }
+
+            if(mobileBtn) {
+                mobileBtn.addEventListener('click', openSidebar);
+            }
+            if(backdrop) {
+                backdrop.addEventListener('click', closeSidebar);
+            }
+            if(closeBtn) {
+                closeBtn.addEventListener('click', closeSidebar);
+            }
+            
+            // Re-initialize icons just in case newly added elements need it
+            lucide.createIcons();
         </script>
         @stack('scripts')
     </body>

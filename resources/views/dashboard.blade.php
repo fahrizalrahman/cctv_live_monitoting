@@ -3,16 +3,18 @@
 @section('page_title', 'Live Monitoring Dashboard')
 
 @section('content')
-<!-- Dashboard Welcome Header -->
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-    <div>
-        <h2 class="text-xl font-bold text-slate-200">System Dashboard</h2>
-        <p class="text-xs text-slate-500 mt-1">Real-time camera metrics, active system users, and stream status logs.</p>
+<!-- Dashboard Wrapper (Flex Col Full Height) -->
+<div class="flex flex-col flex-1 h-full min-h-0">
+    <!-- Dashboard Welcome Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 shrink-0">
+        <div>
+            <h2 class="text-xl font-bold text-slate-200">System Dashboard</h2>
+            <p class="text-xs text-slate-500 mt-1">Real-time camera metrics, active system users, and stream status logs.</p>
+        </div>
     </div>
-</div>
 
-<!-- Stats Cards Grid -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Stats Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 shrink-0">
     <!-- Card 1 -->
     <div class="bg-[#0d1321]/60 border border-slate-800 p-6 rounded-2xl flex items-center justify-between shadow-lg hover:border-slate-700 transition-all">
         <div>
@@ -62,40 +64,40 @@
             <i data-lucide="users" class="w-6 h-6"></i>
         </div>
     </div>
-</div>
+    </div>
 
-<!-- CCTV Live Grid Section -->
-<div class="bg-[#0d1321]/30 border border-slate-800 rounded-3xl p-6 shadow-xl mb-8">
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-        <div>
-            <h2 class="text-xl font-bold text-slate-200">Interactive CCTV Live Grid</h2>
-            <p class="text-xs text-slate-500 mt-1">Select layout and assign CCTV feeds to monitor concurrently.</p>
-        </div>
+    <!-- CCTV Live Grid Section -->
+    <div class="bg-[#0d1321]/30 border border-slate-800 rounded-3xl p-4 shadow-xl flex-1 flex flex-col min-h-0">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4 shrink-0">
+            <div>
+                <h2 class="text-xl font-bold text-slate-200">Interactive CCTV Live Grid</h2>
+                <p class="text-xs text-slate-500 mt-1">Select layout and assign CCTV feeds to monitor concurrently.</p>
+            </div>
 
         <!-- Layout Controls -->
         <div class="flex items-center bg-[#090d16] p-1 border border-slate-800 rounded-xl gap-1">
             <button onclick="changeLayout(1)" id="btn-layout-1" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition-all">
                 <i data-lucide="square" class="w-3.5 h-3.5"></i>
-                <span>1x1 View</span>
+                <span>1 View</span>
             </button>
-            <button onclick="changeLayout(4)" id="btn-layout-4" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">
-                <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
-                <span>2x2 View</span>
+            <button onclick="changeLayout(2)" id="btn-layout-2" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">
+                <i data-lucide="columns" class="w-3.5 h-3.5"></i>
+                <span>2 View</span>
             </button>
-            <button onclick="changeLayout(9)" id="btn-layout-9" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">
-                <i data-lucide="grid-3x3" class="w-3.5 h-3.5"></i>
-                <span>3x3 View</span>
+            <button onclick="changeLayout(3)" id="btn-layout-3" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">
+                <i data-lucide="gallery-horizontal" class="w-3.5 h-3.5"></i>
+                <span>3 View</span>
             </button>
         </div>
-    </div>
+        </div>
 
-    <!-- The Grid Container -->
-    <div id="cctv-grid" class="grid grid-cols-1 gap-6 transition-all duration-300">
-        <!-- Render 9 slots but toggle visibility based on layout -->
-        @for($i = 0; $i < 9; $i++)
-            <div id="slot-{{ $i }}" class="cctv-slot bg-[#070b12] border border-slate-800/80 rounded-2xl overflow-hidden aspect-video flex flex-col relative group transition-all hover:border-indigo-500/50">
-                <!-- Dropdown Selector (if no stream) -->
-                <div id="selector-{{ $i }}" class="absolute inset-0 flex flex-col items-center justify-center p-6 bg-[#070b12] z-10">
+        <!-- The Grid Container -->
+        <div id="cctv-grid" class="flex-1 overflow-x-auto overflow-y-hidden flex snap-x snap-mandatory gap-4 pb-2 transition-all duration-300 custom-scrollbar">
+            <!-- Render 9 slots but toggle visibility based on layout -->
+            @for($i = 0; $i < 9; $i++)
+                <div id="slot-{{ $i }}" class="cctv-slot bg-[#070b12] border border-slate-800/80 rounded-2xl overflow-hidden h-full flex flex-col relative group transition-all hover:border-indigo-500/50 shrink-0 snap-center">
+                    <!-- Dropdown Selector (if no stream) -->
+                    <div id="selector-{{ $i }}" class="absolute inset-0 flex flex-col items-center justify-center p-6 bg-[#070b12] z-10">
                     <div class="p-3 bg-slate-800/40 rounded-full text-slate-500 mb-3 group-hover:text-indigo-400 group-hover:bg-indigo-600/10 transition-colors">
                         <i data-lucide="plus" class="w-6 h-6"></i>
                     </div>
@@ -131,52 +133,76 @@
                 </div>
             </div>
         @endfor
+        </div>
     </div>
 </div>
 @endsection
 
+@push('styles')
+<style>
+    /* Custom scrollbar for horizontal scrolling grid */
+    .custom-scrollbar::-webkit-scrollbar {
+        height: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.4);
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(79, 70, 229, 0.5); /* indigo-600 with opacity */
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(79, 70, 229, 0.8);
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
-    let currentSlotsCount = 1;
+    let currentItemsPerView = 1;
     let activePlayers = {}; // Keep references to active Hls instances to destroy them properly
 
-    function changeLayout(slotsCount) {
-        currentSlotsCount = slotsCount;
+    function changeLayout(itemsPerView) {
+        currentItemsPerView = itemsPerView;
         
-        // Update grid layout css classes
-        const gridContainer = document.getElementById('cctv-grid');
-        gridContainer.className = 'grid gap-6 transition-all duration-300';
-        
-        if (slotsCount === 1) {
-            gridContainer.classList.add('grid-cols-1');
-        } else if (slotsCount === 4) {
-            gridContainer.classList.add('grid-cols-1', 'md:grid-cols-2');
-        } else if (slotsCount === 9) {
-            gridContainer.classList.add('grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
-        }
-
-        // Toggle visibility of slots
-        for (let i = 0; i < 9; i++) {
-            const slot = document.getElementById(`slot-${i}`);
-            if (i < slotsCount) {
-                slot.classList.remove('hidden');
-            } else {
-                slot.classList.add('hidden');
-                unloadSlot(i); // Free memory and stop video streams for hidden slots
-            }
-        }
-
         // Update active class on buttons
-        const layouts = [1, 4, 9];
+        const layouts = [1, 2, 3];
         layouts.forEach(num => {
             const btn = document.getElementById(`btn-layout-${num}`);
-            if (num === slotsCount) {
+            if (num === itemsPerView) {
                 btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition-all';
             } else {
                 btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all';
             }
         });
+
+        // Update width of all 9 slots and ensure they are all visible to act as a slider
+        for (let i = 0; i < 9; i++) {
+            const slot = document.getElementById(`slot-${i}`);
+            slot.classList.remove('hidden');
+            
+            // Set inline styles for responsive width based on selection
+            if (itemsPerView === 1) {
+                slot.style.width = '100%';
+            } else if (itemsPerView === 2) {
+                slot.style.width = window.innerWidth < 768 ? '100%' : 'calc(50% - 8px)';
+            } else if (itemsPerView === 3) {
+                if (window.innerWidth < 768) {
+                    slot.style.width = '100%';
+                } else if (window.innerWidth < 1024) {
+                    slot.style.width = 'calc(50% - 8px)';
+                } else {
+                    slot.style.width = 'calc(33.333% - 10.66px)';
+                }
+            }
+        }
     }
+    
+    // Add window resize listener to update layout dynamically
+    window.addEventListener('resize', () => {
+        changeLayout(currentItemsPerView);
+    });
 
     function loadCctvIntoSlot(slotId, cctvId) {
         if (!cctvId) return;

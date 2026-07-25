@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
+        @php
+            $appName = \App\Models\Setting::where('key', 'app_name')->first();
+            $appNameDisplay = $appName && $appName->value ? $appName->value : 'CCTV MONITOR';
+            $mapMarkerIcon = \App\Models\Setting::where('key', 'map_marker_icon')->first();
+            $mapMarkerUrl = $mapMarkerIcon && $mapMarkerIcon->value ? Storage::url($mapMarkerIcon->value) : null;
+        @endphp
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>{{ config('app.name', 'CCTV Live Monitor') }} - Interactive Maps</title>
+        <title>{{ $appNameDisplay }} - Interactive Maps</title>
 
         <!-- Google Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,12 +61,19 @@
 
         <!-- Floating Navbar Logo on Top Left -->
         <div class="absolute top-4 left-4 z-20 flex items-center gap-3 bg-[#0d1321]/90 backdrop-blur-xl border border-slate-800/80 px-4 py-2.5 rounded-2xl shadow-xl">
-            <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/25">
-                <i data-lucide="video" class="w-5 h-5"></i>
-            </div>
+            @php
+                $appLogo = \App\Models\Setting::where('key', 'app_logo')->first();
+            @endphp
+            @if($appLogo && $appLogo->value)
+                <img src="{{ Storage::url($appLogo->value) }}" alt="Logo" class="h-6 object-contain" />
+            @else
+                <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/25">
+                    <i data-lucide="video" class="w-5 h-5"></i>
+                </div>
+            @endif
             <div>
-                <h1 class="font-extrabold text-sm tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">CCTV MONITOR</h1>
-                <span class="block text-[8px] text-slate-500 font-semibold tracking-widest uppercase mt-0.5">Dishub Style Maps</span>
+                <h1 class="font-extrabold text-sm tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">{{ $appNameDisplay }}</h1>
+                <span class="block text-[8px] text-slate-500 font-semibold tracking-widest uppercase mt-0.5">Live Streaming Maps</span>
             </div>
         </div>
 
@@ -202,16 +215,30 @@
                         const statusColor = cctv.status === 'active' ? '#10b981' : '#ef4444';
                         const ringColor = cctv.status === 'active' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.2)';
                         
-                        const markerIcon = L.divIcon({
-                            className: 'custom-marker',
-                            html: `
+                        let markerHtml = '';
+                        const customMarkerUrl = {!! json_encode($mapMarkerUrl) !!};
+                        
+                        if (customMarkerUrl) {
+                            markerHtml = `
+                                <div style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px;">
+                                    <div style="position: absolute; width: 48px; height: 48px; border-radius: 50%; background: ${ringColor}; border: 2px solid ${statusColor}; animation: ping 1.8s infinite; opacity: 0.8;"></div>
+                                    <img src="${customMarkerUrl}" style="position: relative; width: 36px; height: 36px; border-radius: 50%; border: 2px solid #090d16; box-shadow: 0 0 8px ${statusColor}; object-fit: cover; background: white;" />
+                                </div>
+                            `;
+                        } else {
+                            markerHtml = `
                                 <div style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
                                     <div style="position: absolute; width: 20px; height: 20px; border-radius: 50%; background: ${ringColor}; border: 1.5px solid ${statusColor}; animation: ping 1.8s infinite; opacity: 0.8;"></div>
                                     <div style="position: relative; width: 10px; height: 10px; border-radius: 50%; background: ${statusColor}; border: 1.5px solid #090d16; box-shadow: 0 0 6px ${statusColor};"></div>
                                 </div>
-                            `,
-                            iconSize: [24, 24],
-                            iconAnchor: [12, 12]
+                            `;
+                        }
+
+                        const markerIcon = L.divIcon({
+                            className: 'custom-marker',
+                            html: markerHtml,
+                            iconSize: customMarkerUrl ? [48, 48] : [24, 24],
+                            iconAnchor: customMarkerUrl ? [24, 24] : [12, 12]
                         });
 
                         const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(map);

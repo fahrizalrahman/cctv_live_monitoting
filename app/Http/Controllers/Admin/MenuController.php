@@ -35,8 +35,12 @@ class MenuController extends Controller
             'url' => 'required|string|max:255',
             'order' => 'required|integer',
             'parent_id' => 'nullable|integer|exists:menus,id',
-            'permission_name' => 'nullable|string|exists:permissions,name',
+            'permission_name' => 'nullable|string|max:255',
         ]);
+
+        if (!empty($validated['permission_name'])) {
+            Permission::firstOrCreate(['name' => $validated['permission_name']]);
+        }
 
         Menu::create($validated);
 
@@ -61,8 +65,12 @@ class MenuController extends Controller
             'url' => 'required|string|max:255',
             'order' => 'required|integer',
             'parent_id' => 'nullable|integer|exists:menus,id',
-            'permission_name' => 'nullable|string|exists:permissions,name',
+            'permission_name' => 'nullable|string|max:255',
         ]);
+
+        if (!empty($validated['permission_name'])) {
+            Permission::firstOrCreate(['name' => $validated['permission_name']]);
+        }
 
         $menu->update($validated);
 

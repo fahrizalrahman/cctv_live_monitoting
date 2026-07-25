@@ -31,9 +31,22 @@
             <!-- Icon -->
             <div>
                 <label for="icon" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Lucide Icon Class</label>
-                <input type="text" id="icon" name="icon" value="{{ old('icon') }}" placeholder="e.g. video"
-                       class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
-                <span class="block text-[9px] text-slate-500 mt-1">Provide a valid Lucide icon name (e.g., video, users, settings, menu).</span>
+                <select id="icon" name="icon"
+                        class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm">
+                    <option value="">Select an icon...</option>
+                    <option value="video" {{ old('icon') == 'video' ? 'selected' : '' }}>Video (CCTV)</option>
+                    <option value="users" {{ old('icon') == 'users' ? 'selected' : '' }}>Users</option>
+                    <option value="layout-dashboard" {{ old('icon') == 'layout-dashboard' ? 'selected' : '' }}>Dashboard</option>
+                    <option value="settings" {{ old('icon') == 'settings' ? 'selected' : '' }}>Settings</option>
+                    <option value="menu" {{ old('icon') == 'menu' ? 'selected' : '' }}>Menu</option>
+                    <option value="shield" {{ old('icon') == 'shield' ? 'selected' : '' }}>Shield (Security)</option>
+                    <option value="map" {{ old('icon') == 'map' ? 'selected' : '' }}>Map</option>
+                    <option value="monitor" {{ old('icon') == 'monitor' ? 'selected' : '' }}>Monitor</option>
+                    <option value="camera" {{ old('icon') == 'camera' ? 'selected' : '' }}>Camera</option>
+                    <option value="server" {{ old('icon') == 'server' ? 'selected' : '' }}>Server</option>
+                    <option value="file-text" {{ old('icon') == 'file-text' ? 'selected' : '' }}>File Text (Logs)</option>
+                    <option value="activity" {{ old('icon') == 'activity' ? 'selected' : '' }}>Activity</option>
+                </select>
                 @error('icon')
                     <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
                 @enderror
@@ -81,15 +94,14 @@
             <!-- Permission Visibility -->
             <div>
                 <label for="permission_name" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Restrict by Permission</label>
-                <select id="permission_name" name="permission_name"
-                        class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm">
-                    <option value="">Public / Authenticated (No restriction)</option>
+                <input type="text" list="permission_list" id="permission_name" name="permission_name" value="{{ old('permission_name') }}" placeholder="Select or type new..."
+                       class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
+                <datalist id="permission_list">
                     @foreach($permissions as $permission)
-                        <option value="{{ $permission->name }}" {{ old('permission_name') === $permission->name ? 'selected' : '' }}>
-                            {{ $permission->name }}
-                        </option>
+                        <option value="{{ $permission->name }}">{{ $permission->name }}</option>
                     @endforeach
-                </select>
+                </datalist>
+                <span class="block text-[9px] text-slate-500 mt-1">Leave blank for Public. Type a new name to auto-create it.</span>
                 @error('permission_name')
                     <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
                 @enderror
