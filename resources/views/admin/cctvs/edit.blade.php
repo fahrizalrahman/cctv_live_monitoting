@@ -152,9 +152,10 @@
         // Prepopulated coordinates from DB
         const savedLat = {{ $cctv->latitude }};
         const savedLng = {{ $cctv->longitude }};
+        const defaultZoom = {{ \App\Models\Setting::where('key', 'map_zoom_level')->first()->value ?? 12 }};
 
         // Initialize Map
-        const map = L.map('minimap').setView([savedLat, savedLng], 12);
+        const map = L.map('minimap').setView([savedLat, savedLng], defaultZoom);
 
         // Google Maps Satellite Hybrid (Earth style)
         L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {

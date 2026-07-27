@@ -5,12 +5,18 @@
             $appName = \App\Models\Setting::where('key', 'app_name')->first();
             $appNameDisplay = $appName && $appName->value ? $appName->value : 'CCTV MONITOR';
             $mapMarkerIcon = \App\Models\Setting::where('key', 'map_marker_icon')->first();
-            $mapMarkerUrl = $mapMarkerIcon && $mapMarkerIcon->value ? Storage::url($mapMarkerIcon->value) : null;
+            $mapMarkerUrl = $mapMarkerIcon && $mapMarkerIcon->value ? asset(Storage::url($mapMarkerIcon->value)) : null;
             
             $mapCenterLat = \App\Models\Setting::where('key', 'map_center_latitude')->first();
             $mapCenterLng = \App\Models\Setting::where('key', 'map_center_longitude')->first();
             $defaultLat = $mapCenterLat && $mapCenterLat->value ? $mapCenterLat->value : '-6.4025';
             $defaultLng = $mapCenterLng && $mapCenterLng->value ? $mapCenterLng->value : '106.8186';
+            
+            $mapZoomLevel = \App\Models\Setting::where('key', 'map_zoom_level')->first();
+            $defaultZoom = $mapZoomLevel && $mapZoomLevel->value ? $mapZoomLevel->value : '12';
+            
+            $mapBoundary = \App\Models\Setting::where('key', 'map_boundary_geojson')->first();
+            $mapBoundaryUrl = $mapBoundary && $mapBoundary->value ? asset(Storage::url($mapBoundary->value)) : null;
         @endphp
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -70,7 +76,7 @@
                 $appLogo = \App\Models\Setting::where('key', 'app_logo')->first();
             @endphp
             @if($appLogo && $appLogo->value)
-                <img src="{{ Storage::url($appLogo->value) }}" alt="Logo" class="h-6 object-contain" />
+                <img src="{{ asset(Storage::url($appLogo->value)) }}" alt="Logo" class="h-6 object-contain" />
             @else
                 <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/25">
                     <i data-lucide="video" class="w-5 h-5"></i>
@@ -195,11 +201,12 @@
             function initMap() {
                 const defaultLat = {{ $defaultLat }};
                 const defaultLng = {{ $defaultLng }};
+                const defaultZoom = {{ $defaultZoom }};
 
                 // Centered on configured area by default
                 map = L.map('map', {
                     zoomControl: false
-                }).setView([defaultLat, defaultLng], 12);
+                }).setView([defaultLat, defaultLng], defaultZoom);
 
                 // Add Zoom Controls to bottom left
                 L.control.zoom({
@@ -212,6 +219,32 @@
                     subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
                     maxZoom: 20
                 }).addTo(map);
+
+                // Load Boundary GeoJSON if configured
+                const boundaryUrl = {!! json_encode($mapBoundaryUrl) !!};
+                if (boundaryUrl) {
+                    fetch(boundaryUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            const geojsonLayer = L.geoJSON(data, {
+                                style: function (feature) {
+                                    return {
+                                        color: "#ef4444", // Red outline like google maps
+                                        weight: 2,
+                                        opacity: 0.8,
+                                        fillOpacity: 0.05,
+                                        dashArray: '5, 5' // Dashed line
+                                    };
+                                }
+                            }).addTo(map);
+                            
+                            // Auto adjust zoom to fit boundary ONLY if there are no active CCTV markers
+                            if (cctvs.length === 0) {
+                                map.fitBounds(geojsonLayer.getBounds(), { padding: [20, 20] });
+                            }
+                        })
+                        .catch(err => console.error("Error loading boundary geojson:", err));
+                }
 
                 // Add markers
                 cctvs.forEach(cctv => {

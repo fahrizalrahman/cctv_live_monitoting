@@ -42,7 +42,7 @@
             <div class="text-center mb-8">
                 @if($appLogo && $appLogo->value)
                     <div class="inline-flex items-center justify-center mb-4">
-                        <img src="{{ Storage::url($appLogo->value) }}" alt="Logo" class="h-16 object-contain" />
+                        <img src="{{ asset(Storage::url($appLogo->value)) }}" alt="Logo" class="h-16 object-contain" />
                     </div>
                 @else
                     <div class="inline-flex items-center justify-center p-3.5 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-600/30 mb-4 ring-4 ring-indigo-500/10">

@@ -159,9 +159,10 @@
         // Default coordinates
         const defaultLat = parseFloat(document.getElementById('latitude').value) || -6.4025;
         const defaultLng = parseFloat(document.getElementById('longitude').value) || 106.8186;
+        const defaultZoom = {{ \App\Models\Setting::where('key', 'map_zoom_level')->first()->value ?? 12 }};
 
         // Initialize Map
-        const map = L.map('minimap').setView([defaultLat, defaultLng], 12);
+        const map = L.map('minimap').setView([defaultLat, defaultLng], defaultZoom);
 
         // Google Maps Satellite Hybrid (Earth style)
         L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {

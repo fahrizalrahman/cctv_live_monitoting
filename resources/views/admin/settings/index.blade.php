@@ -54,10 +54,10 @@
             @enderror
         </div>
 
-        <!-- Map Center Coordinates -->
+        <!-- Map Center Coordinates & Zoom -->
         <div class="pt-4 border-t border-slate-800/50">
-            <h3 class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Map Center Configuration</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <h3 class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Map Center & Zoom</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label for="map_center_latitude" class="block text-[10px] text-slate-500 mb-1">Default Latitude</label>
                     <input type="text" id="map_center_latitude" name="map_center_latitude" value="{{ old('map_center_latitude', $mapCenterLat->value ?? '-6.4025') }}"
@@ -74,8 +74,16 @@
                         <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
                     @enderror
                 </div>
+                <div>
+                    <label for="map_zoom_level" class="block text-[10px] text-slate-500 mb-1">Default Zoom Level</label>
+                    <input type="number" id="map_zoom_level" name="map_zoom_level" value="{{ old('map_zoom_level', $mapZoomLevel->value ?? '12') }}" min="1" max="20"
+                           class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
+                    @error('map_zoom_level')
+                        <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
-            <span class="block text-[10px] text-slate-500 mt-2">Set the default coordinates where the map will focus when first loaded.</span>
+            <span class="block text-[10px] text-slate-500 mt-2">Set the default coordinates and zoom level (1-20) where the map will focus when first loaded.</span>
         </div>
 
         <!-- Map Marker Icon -->
@@ -100,6 +108,31 @@
                           hover:file:bg-emerald-600/20 transition-all cursor-pointer" />
             <span class="block text-[10px] text-slate-500 mt-2">Custom icon for CCTV points on the map. Recommended size: 32x32px.</span>
             @error('map_marker_icon')
+                <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <!-- Map Boundary GeoJSON -->
+        <div class="pt-4 border-t border-slate-800/50">
+            <label for="map_boundary_geojson" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Map Boundary (GeoJSON)</label>
+            <div class="flex items-center gap-4">
+                @if(isset($mapBoundary) && $mapBoundary->value)
+                    <div class="h-10 w-10 shrink-0 bg-indigo-500/20 border border-indigo-500/50 rounded-xl flex items-center justify-center">
+                        <i data-lucide="map" class="w-5 h-5 text-indigo-400"></i>
+                    </div>
+                @endif
+                <div class="flex-1">
+                    <input type="file" id="map_boundary_geojson" name="map_boundary_geojson" accept=".json,.geojson,.txt,application/json"
+                           class="block w-full text-sm text-slate-400
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-full file:border-0
+                                  file:text-xs file:font-semibold
+                                  file:bg-indigo-600/10 file:text-indigo-400
+                                  hover:file:bg-indigo-600/20 file:transition-all" />
+                    <span class="block text-[10px] text-slate-500 mt-1">Upload file .geojson untuk menampilkan garis batas wilayah pada peta (contoh: batas kota). Maks 5MB.</span>
+                </div>
+            </div>
+            @error('map_boundary_geojson')
                 <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
             @enderror
         </div>

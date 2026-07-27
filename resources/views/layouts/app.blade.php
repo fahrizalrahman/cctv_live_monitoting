@@ -96,7 +96,7 @@
                     <div class="h-16 flex items-center justify-between px-6 border-b border-slate-800">
                         <div class="flex items-center gap-3">
                             @if($appLogo && $appLogo->value)
-                                <img src="{{ Storage::url($appLogo->value) }}" alt="Logo" class="h-8 object-contain" />
+                                <img src="{{ asset(Storage::url($appLogo->value)) }}" alt="Logo" class="h-8 object-contain" />
                             @else
                                 <div class="bg-indigo-600 p-2 rounded-lg text-white shadow-lg shadow-indigo-500/30">
                                     <i data-lucide="video" class="w-6 h-6"></i>
@@ -172,9 +172,9 @@
                 
                 <!-- Mobile Header (Hidden on Desktop) -->
                 <div class="mobile-header-only items-center justify-between p-4 border-b border-slate-800 bg-[#0d1321] shrink-0 sticky top-0 z-30">
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 w-full p-2 mb-2">
                         @if($appLogo && $appLogo->value)
-                            <img src="{{ Storage::url($appLogo->value) }}" alt="Logo" class="h-6 object-contain" />
+                            <img src="{{ asset(Storage::url($appLogo->value)) }}" alt="Logo" class="h-6 object-contain" />
                         @else
                             <div class="bg-indigo-600 p-1.5 rounded-md text-white shadow-lg shadow-indigo-500/30">
                                 <i data-lucide="video" class="w-5 h-5"></i>
