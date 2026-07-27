@@ -159,7 +159,7 @@
         </aside>
 
         <!-- Mobile FAB to open sidebar -->
-        <button id="mobile-sidebar-toggle" onclick="toggleSidebar()" class="md:hidden absolute bg-indigo-600 hover:bg-indigo-500 text-white p-4 rounded-full shadow-lg shadow-indigo-600/30 flex items-center justify-center" style="bottom: 24px; right: 24px; z-index: 50;">
+        <button id="mobile-sidebar-toggle" onclick="toggleSidebar()" class="md:hidden absolute bg-indigo-600 hover:bg-indigo-500 text-white p-4 rounded-full shadow-lg shadow-indigo-600/30 flex items-center justify-center" style="bottom: 64px; right: 24px; z-index: 50;">
             <i data-lucide="list" class="w-6 h-6"></i>
         </button>
 
