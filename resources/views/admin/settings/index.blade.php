@@ -54,6 +54,30 @@
             @enderror
         </div>
 
+        <!-- Map Center Coordinates -->
+        <div class="pt-4 border-t border-slate-800/50">
+            <h3 class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Map Center Configuration</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="map_center_latitude" class="block text-[10px] text-slate-500 mb-1">Default Latitude</label>
+                    <input type="text" id="map_center_latitude" name="map_center_latitude" value="{{ old('map_center_latitude', $mapCenterLat->value ?? '-6.4025') }}"
+                           class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
+                    @error('map_center_latitude')
+                        <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label for="map_center_longitude" class="block text-[10px] text-slate-500 mb-1">Default Longitude</label>
+                    <input type="text" id="map_center_longitude" name="map_center_longitude" value="{{ old('map_center_longitude', $mapCenterLng->value ?? '106.8186') }}"
+                           class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
+                    @error('map_center_longitude')
+                        <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+            <span class="block text-[10px] text-slate-500 mt-2">Set the default coordinates where the map will focus when first loaded.</span>
+        </div>
+
         <!-- Map Marker Icon -->
         <div class="pt-4 border-t border-slate-800/50">
             <label for="map_marker_icon" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Map Marker Icon</label>

@@ -14,7 +14,10 @@ class SettingController extends Controller
         $appLogo = Setting::where('key', 'app_logo')->first();
         $appName = Setting::where('key', 'app_name')->first();
         $mapMarkerIcon = Setting::where('key', 'map_marker_icon')->first();
-        return view('admin.settings.index', compact('appLogo', 'appName', 'mapMarkerIcon'));
+        $mapCenterLat = Setting::where('key', 'map_center_latitude')->first();
+        $mapCenterLng = Setting::where('key', 'map_center_longitude')->first();
+        
+        return view('admin.settings.index', compact('appLogo', 'appName', 'mapMarkerIcon', 'mapCenterLat', 'mapCenterLng'));
     }
 
     public function update(Request $request)
@@ -23,12 +26,28 @@ class SettingController extends Controller
             'app_name' => 'nullable|string|max:255',
             'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'map_marker_icon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'map_center_latitude' => 'nullable|numeric|between:-90,90',
+            'map_center_longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
         if ($request->has('app_name')) {
             Setting::updateOrCreate(
                 ['key' => 'app_name'],
                 ['value' => $request->app_name]
+            );
+        }
+
+        if ($request->filled('map_center_latitude')) {
+            Setting::updateOrCreate(
+                ['key' => 'map_center_latitude'],
+                ['value' => $request->map_center_latitude]
+            );
+        }
+
+        if ($request->filled('map_center_longitude')) {
+            Setting::updateOrCreate(
+                ['key' => 'map_center_longitude'],
+                ['value' => $request->map_center_longitude]
             );
         }
 

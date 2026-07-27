@@ -6,6 +6,11 @@
             $appNameDisplay = $appName && $appName->value ? $appName->value : 'CCTV MONITOR';
             $mapMarkerIcon = \App\Models\Setting::where('key', 'map_marker_icon')->first();
             $mapMarkerUrl = $mapMarkerIcon && $mapMarkerIcon->value ? Storage::url($mapMarkerIcon->value) : null;
+            
+            $mapCenterLat = \App\Models\Setting::where('key', 'map_center_latitude')->first();
+            $mapCenterLng = \App\Models\Setting::where('key', 'map_center_longitude')->first();
+            $defaultLat = $mapCenterLat && $mapCenterLat->value ? $mapCenterLat->value : '-6.4025';
+            $defaultLng = $mapCenterLng && $mapCenterLng->value ? $mapCenterLng->value : '106.8186';
         @endphp
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -188,10 +193,13 @@
 
             // Initialize Map
             function initMap() {
-                // Centered on Depok/Jakarta area by default
+                const defaultLat = {{ $defaultLat }};
+                const defaultLng = {{ $defaultLng }};
+
+                // Centered on configured area by default
                 map = L.map('map', {
                     zoomControl: false
-                }).setView([-6.4025, 106.8186], 12);
+                }).setView([defaultLat, defaultLng], 12);
 
                 // Add Zoom Controls to bottom left
                 L.control.zoom({

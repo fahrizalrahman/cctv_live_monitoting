@@ -114,16 +114,24 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
+                        @php
+                            $mapCenterLat = \App\Models\Setting::where('key', 'map_center_latitude')->first();
+                            $defaultLat = $mapCenterLat && $mapCenterLat->value ? $mapCenterLat->value : '-6.4025';
+                        @endphp
                         <label for="latitude" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Latitude</label>
-                        <input type="text" id="latitude" name="latitude" value="{{ old('latitude', '-6.20880000') }}" required
+                        <input type="text" id="latitude" name="latitude" value="{{ old('latitude', $defaultLat) }}" required
                                class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
                         @error('latitude')
                             <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
+                        @php
+                            $mapCenterLng = \App\Models\Setting::where('key', 'map_center_longitude')->first();
+                            $defaultLng = $mapCenterLng && $mapCenterLng->value ? $mapCenterLng->value : '106.8186';
+                        @endphp
                         <label for="longitude" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Longitude</label>
-                        <input type="text" id="longitude" name="longitude" value="{{ old('longitude', '106.84560000') }}" required
+                        <input type="text" id="longitude" name="longitude" value="{{ old('longitude', $defaultLng) }}" required
                                class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
                         @error('longitude')
                             <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
@@ -148,9 +156,9 @@
 @push('scripts')
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        // Default coordinates centered on Jakarta
-        const defaultLat = -6.2088;
-        const defaultLng = 106.8456;
+        // Default coordinates
+        const defaultLat = parseFloat(document.getElementById('latitude').value) || -6.4025;
+        const defaultLng = parseFloat(document.getElementById('longitude').value) || 106.8186;
 
         // Initialize Map
         const map = L.map('minimap').setView([defaultLat, defaultLng], 12);
