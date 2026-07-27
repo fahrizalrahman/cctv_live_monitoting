@@ -17,9 +17,8 @@ class SettingController extends Controller
         $mapCenterLat = Setting::where('key', 'map_center_latitude')->first();
         $mapCenterLng = Setting::where('key', 'map_center_longitude')->first();
         $mapZoomLevel = Setting::where('key', 'map_zoom_level')->first();
-        $mapBoundary = Setting::where('key', 'map_boundary_geojson')->first();
         
-        return view('admin.settings.index', compact('appLogo', 'appName', 'mapMarkerIcon', 'mapCenterLat', 'mapCenterLng', 'mapZoomLevel', 'mapBoundary'));
+        return view('admin.settings.index', compact('appLogo', 'appName', 'mapMarkerIcon', 'mapCenterLat', 'mapCenterLng', 'mapZoomLevel'));
     }
 
     public function update(Request $request)
@@ -31,7 +30,6 @@ class SettingController extends Controller
             'map_center_latitude' => 'nullable|numeric|between:-90,90',
             'map_center_longitude' => 'nullable|numeric|between:-180,180',
             'map_zoom_level' => 'nullable|integer|between:1,20',
-            'map_boundary_geojson' => 'nullable|file|max:5120', // allow up to 5MB json file
         ]);
 
         if ($request->has('app_name')) {
@@ -74,13 +72,6 @@ class SettingController extends Controller
             $filename = time() . '_marker_' . $file->getClientOriginalName();
             $path = $file->storeAs('logos', $filename, 'public');
             Setting::updateOrCreate(['key' => 'map_marker_icon'], ['value' => $path]);
-        }
-
-        if ($request->hasFile('map_boundary_geojson')) {
-            $file = $request->file('map_boundary_geojson');
-            $filename = time() . '_boundary_' . $file->getClientOriginalName();
-            $path = $file->storeAs('geojson', $filename, 'public');
-            Setting::updateOrCreate(['key' => 'map_boundary_geojson'], ['value' => $path]);
         }
 
         return redirect()->route('admin.settings.index')->with('success', 'App settings updated successfully.');

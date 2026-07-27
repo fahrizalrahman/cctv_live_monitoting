@@ -14,9 +14,6 @@
             
             $mapZoomLevel = \App\Models\Setting::where('key', 'map_zoom_level')->first();
             $defaultZoom = $mapZoomLevel && $mapZoomLevel->value ? $mapZoomLevel->value : '12';
-            
-            $mapBoundary = \App\Models\Setting::where('key', 'map_boundary_geojson')->first();
-            $mapBoundaryUrl = $mapBoundary && $mapBoundary->value ? asset(Storage::url($mapBoundary->value)) : null;
         @endphp
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -219,32 +216,6 @@
                     subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
                     maxZoom: 20
                 }).addTo(map);
-
-                // Load Boundary GeoJSON if configured
-                const boundaryUrl = {!! json_encode($mapBoundaryUrl) !!};
-                if (boundaryUrl) {
-                    fetch(boundaryUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            const geojsonLayer = L.geoJSON(data, {
-                                style: function (feature) {
-                                    return {
-                                        color: "#ef4444", // Red outline like google maps
-                                        weight: 2,
-                                        opacity: 0.8,
-                                        fillOpacity: 0.05,
-                                        dashArray: '5, 5' // Dashed line
-                                    };
-                                }
-                            }).addTo(map);
-                            
-                            // Auto adjust zoom to fit boundary ONLY if there are no active CCTV markers
-                            if (cctvs.length === 0) {
-                                map.fitBounds(geojsonLayer.getBounds(), { padding: [20, 20] });
-                            }
-                        })
-                        .catch(err => console.error("Error loading boundary geojson:", err));
-                }
 
                 // Add markers
                 cctvs.forEach(cctv => {

@@ -112,31 +112,6 @@
             @enderror
         </div>
 
-        <!-- Map Boundary GeoJSON -->
-        <div class="pt-4 border-t border-slate-800/50">
-            <label for="map_boundary_geojson" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Map Boundary (GeoJSON)</label>
-            <div class="flex items-center gap-4">
-                @if(isset($mapBoundary) && $mapBoundary->value)
-                    <div class="h-10 w-10 shrink-0 bg-indigo-500/20 border border-indigo-500/50 rounded-xl flex items-center justify-center">
-                        <i data-lucide="map" class="w-5 h-5 text-indigo-400"></i>
-                    </div>
-                @endif
-                <div class="flex-1">
-                    <input type="file" id="map_boundary_geojson" name="map_boundary_geojson" accept=".json,.geojson,.txt,application/json"
-                           class="block w-full text-sm text-slate-400
-                                  file:mr-4 file:py-2 file:px-4
-                                  file:rounded-full file:border-0
-                                  file:text-xs file:font-semibold
-                                  file:bg-indigo-600/10 file:text-indigo-400
-                                  hover:file:bg-indigo-600/20 file:transition-all" />
-                    <span class="block text-[10px] text-slate-500 mt-1">Upload file .geojson untuk menampilkan garis batas wilayah pada peta (contoh: batas kota). Maks 5MB.</span>
-                </div>
-            </div>
-            @error('map_boundary_geojson')
-                <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
-            @enderror
-        </div>
-
         <div class="pt-6 border-t border-slate-800 flex justify-end gap-3">
             <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
                 <i data-lucide="save" class="w-4 h-4"></i>
