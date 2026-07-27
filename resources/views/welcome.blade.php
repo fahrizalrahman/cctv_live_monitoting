@@ -60,6 +60,13 @@
             ::-webkit-scrollbar-thumb:hover {
                 background: #334155;
             }
+            /* Custom Responsive Override */
+            @media (max-width: 767px) {
+                .mobile-hidden { display: none !important; }
+            }
+            @media (min-width: 768px) {
+                .desktop-hidden { display: none !important; }
+            }
         </style>
     </head>
     <body class="antialiased bg-[#090d16] text-slate-200 min-h-screen overflow-hidden flex flex-col relative">
@@ -86,13 +93,13 @@
         </div>
 
         <!-- Floating CCTV Directory Sidebar Panel on Right -->
-        <aside id="sidebar" class="hidden md:flex absolute top-4 right-4 bottom-4 w-[calc(100%-2rem)] sm:w-80 bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 p-5 flex-col z-30 shadow-2xl rounded-3xl">
+        <aside id="sidebar" class="mobile-hidden absolute top-4 right-4 bottom-4 w-[calc(100%-2rem)] sm:w-80 bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 p-5 flex flex-col z-30 shadow-2xl rounded-3xl">
             <!-- Sidebar Header & Action -->
             <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-800/50">
                 <span class="text-sm font-bold text-slate-200">Daftar CCTV</span>
                 
                 <div class="flex items-center gap-2">
-                    <button onclick="toggleSidebar()" class="md:hidden p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl transition-all" title="Tutup">
+                    <button onclick="toggleSidebar()" class="desktop-hidden p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl transition-all" title="Tutup">
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                     @auth
@@ -159,7 +166,7 @@
         </aside>
 
         <!-- Mobile FAB to open sidebar -->
-        <button id="mobile-sidebar-toggle" onclick="toggleSidebar()" class="md:hidden absolute bg-indigo-600 hover:bg-indigo-500 text-white p-4 rounded-full shadow-lg shadow-indigo-600/30 flex items-center justify-center" style="bottom: 64px; right: 24px; z-index: 50;">
+        <button id="mobile-sidebar-toggle" onclick="toggleSidebar()" class="desktop-hidden absolute bg-indigo-600 hover:bg-indigo-500 text-white p-4 rounded-full shadow-lg shadow-indigo-600/30 flex items-center justify-center" style="bottom: 64px; right: 24px; z-index: 50;">
             <i data-lucide="list" class="w-6 h-6"></i>
         </button>
 
@@ -440,12 +447,11 @@
                 const sidebar = document.getElementById('sidebar');
                 const fab = document.getElementById('mobile-sidebar-toggle');
                 
-                // Toggle visibility
-                sidebar.classList.toggle('hidden');
-                sidebar.classList.toggle('flex');
+                // Toggle visibility on mobile
+                sidebar.classList.toggle('mobile-hidden');
                 
                 // Hide FAB when sidebar is open
-                fab.classList.toggle('hidden');
+                fab.classList.toggle('mobile-hidden');
                 
                 setTimeout(() => { map.invalidateSize(); }, 350);
             }
