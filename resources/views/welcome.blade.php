@@ -86,20 +86,25 @@
         </div>
 
         <!-- Floating CCTV Directory Sidebar Panel on Right -->
-        <aside class="absolute top-4 right-4 bottom-4 w-80 bg-[#0d1321]/90 backdrop-blur-xl border border-slate-800/80 p-5 flex flex-col z-30 shadow-2xl rounded-3xl">
+        <aside id="sidebar" class="hidden md:flex absolute top-4 right-4 bottom-4 w-[calc(100%-2rem)] sm:w-80 bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 p-5 flex-col z-30 shadow-2xl rounded-3xl">
             <!-- Sidebar Header & Action -->
             <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-800/50">
                 <span class="text-sm font-bold text-slate-200">Daftar CCTV</span>
                 
-                @auth
-                    <a href="{{ route('dashboard') }}" class="p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-md transition-all" title="Dashboard">
-                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-                    </a>
-                @else
-                    <a href="{{ route('login') }}" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-all border border-slate-700/50" title="Login Dashboard">
-                        <i data-lucide="log-in" class="w-4 h-4"></i>
-                    </a>
-                @endauth
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl transition-all" title="Tutup">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                    @auth
+                        <a href="{{ route('dashboard') }}" class="p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-md transition-all" title="Dashboard">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-all border border-slate-700/50" title="Login Dashboard">
+                            <i data-lucide="log-in" class="w-4 h-4"></i>
+                        </a>
+                    @endauth
+                </div>
             </div>
 
             <!-- Search Bar -->
@@ -152,6 +157,11 @@
                 @endforelse
             </div>
         </aside>
+
+        <!-- Mobile FAB to open sidebar -->
+        <button id="mobile-sidebar-toggle" onclick="toggleSidebar()" class="md:hidden absolute bg-indigo-600 hover:bg-indigo-500 text-white p-4 rounded-full shadow-lg shadow-indigo-600/30 flex items-center justify-center" style="bottom: 24px; right: 24px; z-index: 50;">
+            <i data-lucide="list" class="w-6 h-6"></i>
+        </button>
 
         <!-- Floating Centered Video Player Modal Card (Depok style overlay) -->
         <div id="stream-modal" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl z-40 transform scale-95 opacity-0 pointer-events-none transition-all duration-300 flex flex-col">
@@ -424,6 +434,21 @@
             }
             setInterval(updateModalClock, 1000);
             updateModalClock();
+
+            // Toggle Sidebar for Mobile
+            function toggleSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const fab = document.getElementById('mobile-sidebar-toggle');
+                
+                // Toggle visibility
+                sidebar.classList.toggle('hidden');
+                sidebar.classList.toggle('flex');
+                
+                // Hide FAB when sidebar is open
+                fab.classList.toggle('hidden');
+                
+                setTimeout(() => { map.invalidateSize(); }, 350);
+            }
 
             // Inject keyframes style programmatically for ping animation on markers
             const style = document.createElement('style');
