@@ -29,43 +29,16 @@ class CctvStatusController extends Controller
                 $host = $cctv->ip;
                 $port = !empty($cctv->port) ? $cctv->port : 554;
                 
-                // Open a non-blocking async socket connection
-                $socket = @stream_socket_client("tcp://$host:$port", $errno, $errstr, 1, STREAM_CLIENT_ASYNC_CONNECT);
-                if ($socket) {
-                    stream_set_blocking($socket, false);
-                    $sockets[$cctv->id] = $socket;
+                // Use a reliable synchronous check with a very short timeout (1 second)
+                // This is safer and more reliable across all OS environments (Windows, Mac, Linux)
+                // compared to async streams which can be buggy on some XAMPP versions.
+                $fp = @fsockopen($host, $port, $errno, $errstr, 1);
+                
+                if ($fp) {
+                    $results[$cctv->id] = 'online';
+                    @fclose($fp);
                 } else {
                     $results[$cctv->id] = 'offline';
-                }
-            }
-
-            // Wait for sockets to connect or fail with a total timeout of 3 seconds
-            if (!empty($sockets)) {
-                $read = [];
-                $write = $sockets;
-                $except = $sockets;
-                
-                if (@stream_select($read, $write, $except, 3) > 0) {
-                    foreach ($write as $id => $socket) {
-                        // If stream_socket_get_name with true returns a peer name, it's connected
-                        $peer = @stream_socket_get_name($socket, true);
-                        if ($peer) {
-                            $results[$id] = 'online';
-                        } else {
-                            $results[$id] = 'offline';
-                        }
-                    }
-                    foreach ($except as $id => $socket) {
-                        $results[$id] = 'offline';
-                    }
-                }
-
-                // Close all sockets and mark remaining as offline
-                foreach ($sockets as $id => $socket) {
-                    if (!isset($results[$id])) {
-                        $results[$id] = 'offline';
-                    }
-                    @fclose($socket);
                 }
             }
 
