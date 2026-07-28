@@ -25,6 +25,21 @@
                         <i data-lucide="chevron-down" class="w-4 h-4"></i>
                     </div>
                 </div>
+                
+                <!-- Online/Offline Filter (Client-side) -->
+                <div class="relative w-40 shrink-0">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                        <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <select id="status-filter" onchange="filterTable()" class="block w-full pl-9 pr-8 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-xs appearance-none cursor-pointer">
+                        <option value="">All Status</option>
+                        <option value="online">Online</option>
+                        <option value="offline">Offline</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-slate-500">
+                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                    </div>
+                </div>
                 @if(request()->filled('cctv_group_id'))
                     <a href="{{ route('admin.cctvs.index') }}" class="p-2.5 bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white rounded-xl transition-all border border-rose-500/20 shrink-0" title="Clear Filter">
                         <i data-lucide="x" class="w-4 h-4"></i>
@@ -54,7 +69,7 @@
             </thead>
             <tbody class="divide-y divide-slate-800/50 text-sm text-slate-300">
                 @forelse($cctvs as $cctv)
-                    <tr class="hover:bg-slate-800/10 transition-colors">
+                    <tr class="hover:bg-slate-800/10 transition-colors cctv-row" data-id="{{ $cctv->id }}">
                         <td class="py-4 px-4">
                             <span class="font-bold text-slate-200 block">{{ $cctv->name }}</span>
                             @if($cctv->group)
@@ -138,10 +153,30 @@
         fetchStatusData();
     });
 
+    // Store latest statuses globally so filter can work
+    let currentStatuses = {};
+
+    function filterTable() {
+        const selectedStatus = document.getElementById('status-filter').value;
+        const rows = document.querySelectorAll('.cctv-row');
+        
+        rows.forEach(row => {
+            const id = row.getAttribute('data-id');
+            const status = currentStatuses[id] || 'offline';
+            
+            if (selectedStatus === '' || status === selectedStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
     async function fetchStatusData() {
         try {
             const response = await fetch('/api/cctvs/status');
             const statuses = await response.json();
+            currentStatuses = statuses;
             
             document.querySelectorAll('.cctv-status').forEach(el => {
                 const id = el.getAttribute('data-id');
@@ -164,6 +199,7 @@
         } catch (e) {
             console.error("Failed to load real-time status", e);
         } finally {
+            filterTable(); // Re-apply filter after status loads
             setTimeout(fetchStatusData, 5000);
         }
     }
