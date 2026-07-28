@@ -30,12 +30,8 @@
     <div class="bg-[#0d1321]/60 border border-slate-800 p-6 rounded-2xl flex items-center justify-between shadow-lg hover:border-slate-700 transition-all">
         <div>
             <span class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Streams</span>
-            <span class="block text-3xl font-extrabold text-emerald-400 mt-2 flex items-center gap-2">
-                {{ $stats['active_cctv'] }}
-                <span class="flex h-2.5 w-2.5 relative">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
+            <span id="active-streams-count" class="block text-3xl font-extrabold text-emerald-400 mt-2 flex items-center gap-2">
+                <span class="text-lg text-slate-400">Checking...</span>
             </span>
         </div>
         <div class="p-3.5 bg-emerald-600/10 rounded-xl border border-emerald-500/20 text-emerald-400">
@@ -47,7 +43,9 @@
     <div class="bg-[#0d1321]/60 border border-slate-800 p-6 rounded-2xl flex items-center justify-between shadow-lg hover:border-slate-700 transition-all">
         <div>
             <span class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Offline Streams</span>
-            <span class="block text-3xl font-extrabold text-rose-500 mt-2">{{ $stats['inactive_cctv'] }}</span>
+            <span id="offline-streams-count" class="block text-3xl font-extrabold text-rose-500 mt-2">
+                <span class="text-lg text-slate-400">Checking...</span>
+            </span>
         </div>
         <div class="p-3.5 bg-rose-600/10 rounded-xl border border-rose-500/20 text-rose-400">
             <i data-lucide="alert-triangle" class="w-6 h-6"></i>
@@ -290,6 +288,43 @@
     // Initialize layout to 1x1
     document.addEventListener("DOMContentLoaded", () => {
         changeLayout(1);
+        fetchDashboardStats();
     });
+
+    async function fetchDashboardStats() {
+        try {
+            const response = await fetch('/api/cctvs/status');
+            const statuses = await response.json();
+            
+            let onlineCount = 0;
+            let offlineCount = 0;
+            
+            for (const status of Object.values(statuses)) {
+                if (status === 'online') {
+                    onlineCount++;
+                } else {
+                    offlineCount++;
+                }
+            }
+            
+            const activeEl = document.getElementById('active-streams-count');
+            if (activeEl) {
+                activeEl.innerHTML = `
+                    ${onlineCount}
+                    <span class="flex h-2.5 w-2.5 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                `;
+            }
+            
+            const offlineEl = document.getElementById('offline-streams-count');
+            if (offlineEl) {
+                offlineEl.innerHTML = offlineCount;
+            }
+        } catch (error) {
+            console.error("Failed to fetch real-time status for dashboard:", error);
+        }
+    }
 </script>
 @endpush
