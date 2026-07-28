@@ -69,7 +69,7 @@
             }
         </style>
     </head>
-    <body class="antialiased bg-[#090d16] text-slate-200 min-h-screen overflow-hidden flex flex-col relative">
+    <body class="antialiased bg-[#090d16] text-slate-200 overflow-hidden flex flex-col relative w-full" style="height: 100vh; height: 100dvh;">
 
         <!-- Fullscreen Map View -->
         <div id="map" class="absolute inset-0 z-10 w-full h-full"></div>
@@ -490,6 +490,8 @@
             window.onload = () => {
                 initMap();
                 fetchRealTimeStatus();
+                // Auto-refresh real-time status every 30 seconds
+                setInterval(fetchRealTimeStatus, 30000);
             };
 
             // Fetch Real-time CCTV status

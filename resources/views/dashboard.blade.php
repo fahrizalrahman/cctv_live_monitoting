@@ -214,14 +214,13 @@
         const cctvIp = selectedOption.getAttribute('data-ip');
         const cctvPort = selectedOption.getAttribute('data-port');
 
-        // Convert RTSP to HLS dynamic path
+        // Convert RTSP to proper go2rtc path
         let streamUrl = rawUrl;
+        let isMp4 = false;
+        
         if (rawUrl && rawUrl.toLowerCase().startsWith('rtsp://')) {
-            if (window.location.protocol === 'https:') {
-                streamUrl = `/stream/api/stream.m3u8?src=cctv_${cctvId}`;
-            } else {
-                streamUrl = `http://${window.location.hostname}:1984/api/stream.m3u8?src=cctv_${cctvId}`;
-            }
+            streamUrl = `/go2rtc/api/stream.mp4?src=cctv_${cctvId}`;
+            isMp4 = true;
         }
 
         const playerContainer = document.getElementById(`player-container-${slotId}`);
@@ -241,19 +240,26 @@
         playerContainer.classList.remove('hidden');
 
         // Play stream
-        if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(streamUrl);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                video.play().catch(e => console.log('Autoplay blocked:', e));
-            });
-            activePlayers[slotId] = hls;
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        if (isMp4) {
             video.src = streamUrl;
             video.addEventListener('loadedmetadata', function() {
                 video.play().catch(e => console.log('Autoplay blocked:', e));
             });
+        } else {
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(streamUrl);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play().catch(e => console.log('Autoplay blocked:', e));
+                });
+                activePlayers[slotId] = hls;
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = streamUrl;
+                video.addEventListener('loadedmetadata', function() {
+                    video.play().catch(e => console.log('Autoplay blocked:', e));
+                });
+            }
         }
     }
 
@@ -289,6 +295,8 @@
     document.addEventListener("DOMContentLoaded", () => {
         changeLayout(1);
         fetchDashboardStats();
+        // Auto-refresh stats every 30 seconds
+        setInterval(fetchDashboardStats, 30000);
     });
 
     async function fetchDashboardStats() {

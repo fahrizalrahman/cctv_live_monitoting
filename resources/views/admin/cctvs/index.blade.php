@@ -126,7 +126,13 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', async function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchStatusData();
+        // Auto-refresh real-time status every 30 seconds
+        setInterval(fetchStatusData, 30000);
+    });
+
+    async function fetchStatusData() {
         try {
             const response = await fetch('/api/cctvs/status');
             const statuses = await response.json();
@@ -149,10 +155,9 @@
                     `;
                 }
             });
-            // Re-initialize lucide icons if there were any changes (not needed here since we replaced html entirely without lucide icons)
         } catch (e) {
             console.error("Failed to load real-time status", e);
         }
-    });
+    }
 </script>
 @endsection
