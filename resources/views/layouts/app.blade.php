@@ -124,19 +124,61 @@
 
                         @if(isset($sidebarMenus))
                             @foreach($sidebarMenus as $menu)
-                                <div>
-                                    <!-- Main Menu Item -->
-                                    <a href="{{ url($menu->url) }}" class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all {{ Request::is(ltrim($menu->url, '/').'*') ? 'bg-indigo-600/20 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' }}">
-                                        <div class="flex items-center gap-3">
-                                            @if($menu->icon)
-                                                <i data-lucide="{{ $menu->icon }}" class="w-4 h-4"></i>
-                                            @else
-                                                <i data-lucide="circle" class="w-3 h-3"></i>
-                                            @endif
-                                            <span>{{ $menu->name }}</span>
+                                @if($menu->children->count() > 0)
+                                    @php
+                                        $hasActiveChild = false;
+                                        foreach($menu->children as $child) {
+                                            if (Request::is(ltrim($child->url, '/').'*') && ltrim($child->url, '/') !== '') {
+                                                $hasActiveChild = true;
+                                                break;
+                                            }
+                                        }
+                                        $isParentActive = ($menu->url !== '/' && $menu->url !== '#' && Request::is(ltrim($menu->url, '/').'*')) || $hasActiveChild;
+                                    @endphp
+                                    <div x-data="{ open: {{ $isParentActive ? 'true' : 'false' }} }">
+                                        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all {{ $isParentActive ? 'bg-indigo-600/20 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' }}">
+                                            <div class="flex items-center gap-3">
+                                                @if($menu->icon)
+                                                    <i data-lucide="{{ $menu->icon }}" class="w-4 h-4"></i>
+                                                @else
+                                                    <i data-lucide="circle" class="w-3 h-3"></i>
+                                                @endif
+                                                <span>{{ $menu->name }}</span>
+                                            </div>
+                                            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                                        </button>
+                                        <div x-show="open" style="display: none;" class="mt-1 space-y-1 bg-[#0a0e1a]/50 rounded-lg p-1.5 border border-slate-800/50">
+                                            @foreach($menu->children as $child)
+                                                @php
+                                                    $canAccessChild = true;
+                                                    if (!empty($child->permission_name) && !Auth::user()->hasRole('admin')) {
+                                                        $canAccessChild = Auth::user()->hasPermissionTo($child->permission_name);
+                                                    }
+                                                @endphp
+                                                @if($canAccessChild)
+                                                    <a href="{{ url($child->url) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all {{ Request::is(ltrim($child->url, '/').'*') && ltrim($child->url, '/') !== '' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800' }}">
+                                                        <i data-lucide="minus" class="w-3 h-3"></i>
+                                                        <span>{{ $child->name }}</span>
+                                                    </a>
+                                                @endif
+                                            @endforeach
                                         </div>
-                                    </a>
-                                </div>
+                                    </div>
+                                @else
+                                    <div>
+                                        <!-- Main Menu Item -->
+                                        <a href="{{ url($menu->url) }}" class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all {{ Request::is(ltrim($menu->url, '/').'*') && ltrim($menu->url, '/') !== '' ? 'bg-indigo-600/20 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' }}">
+                                            <div class="flex items-center gap-3">
+                                                @if($menu->icon)
+                                                    <i data-lucide="{{ $menu->icon }}" class="w-4 h-4"></i>
+                                                @else
+                                                    <i data-lucide="circle" class="w-3 h-3"></i>
+                                                @endif
+                                                <span>{{ $menu->name }}</span>
+                                            </div>
+                                        </a>
+                                    </div>
+                                @endif
                             @endforeach
                         @endif
                     </nav>

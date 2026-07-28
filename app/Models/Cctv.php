@@ -17,5 +17,11 @@ class Cctv extends Model
         'latitude',
         'longitude',
         'status',
+        'cctv_group_id',
     ];
+
+    public function group()
+    {
+        return $this->belongsTo(CctvGroup::class, 'cctv_group_id');
+    }
 }

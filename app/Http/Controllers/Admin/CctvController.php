@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cctv;
+use App\Models\CctvGroup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
@@ -13,11 +14,19 @@ class CctvController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         Gate::authorize('manage cctvs');
-        $cctvs = Cctv::paginate(10);
-        return view('admin.cctvs.index', compact('cctvs'));
+        
+        $query = Cctv::with('group');
+        if ($request->filled('cctv_group_id')) {
+            $query->where('cctv_group_id', $request->cctv_group_id);
+        }
+        
+        $cctvs = $query->paginate(10)->withQueryString();
+        $groups = CctvGroup::orderBy('name')->get();
+        
+        return view('admin.cctvs.index', compact('cctvs', 'groups'));
     }
 
     /**
@@ -26,7 +35,8 @@ class CctvController extends Controller
     public function create()
     {
         Gate::authorize('manage cctvs');
-        return view('admin.cctvs.create');
+        $groups = CctvGroup::all();
+        return view('admin.cctvs.create', compact('groups'));
     }
 
     /**
@@ -47,6 +57,7 @@ class CctvController extends Controller
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'status' => 'required|string|in:active,inactive',
+            'cctv_group_id' => 'nullable|exists:cctv_groups,id',
         ]);
 
         Cctv::create($validated);
@@ -62,7 +73,8 @@ class CctvController extends Controller
     public function edit(Cctv $cctv)
     {
         Gate::authorize('manage cctvs');
-        return view('admin.cctvs.edit', compact('cctv'));
+        $groups = CctvGroup::all();
+        return view('admin.cctvs.edit', compact('cctv', 'groups'));
     }
 
     /**
@@ -83,6 +95,7 @@ class CctvController extends Controller
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'status' => 'required|string|in:active,inactive',
+            'cctv_group_id' => 'nullable|exists:cctv_groups,id',
         ]);
 
         $cctv->update($validated);

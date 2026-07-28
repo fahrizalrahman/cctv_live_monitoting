@@ -13,7 +13,12 @@ class MenuController extends Controller
     public function index()
     {
         Gate::authorize('manage menus');
-        $menus = Menu::with('parent')->orderBy('order', 'asc')->paginate(10);
+        $menus = Menu::whereNull('parent_id')
+            ->with(['children' => function($query) {
+                $query->orderBy('order', 'asc');
+            }])
+            ->orderBy('order', 'asc')
+            ->get();
         return view('admin.menus.index', compact('menus'));
     }
 

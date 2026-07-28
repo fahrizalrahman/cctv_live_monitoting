@@ -115,7 +115,7 @@
             </div>
 
             <!-- Search Bar -->
-            <div class="mb-5">
+            <div class="mb-3">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
                         <i data-lucide="search" class="w-4 h-4"></i>
@@ -126,6 +126,16 @@
                            placeholder="Cari CCTV..." 
                            class="block w-full pl-9 pr-4 py-2 bg-[#090d16]/90 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-xs" />
                 </div>
+            </div>
+
+            <!-- Group Filter -->
+            <div class="mb-5">
+                <select id="group-filter" onchange="filterCctvs()" class="block w-full px-3 py-2 bg-[#090d16]/90 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-xs">
+                    <option value="">Semua Group</option>
+                    @foreach($groups as $group)
+                        <option value="{{ $group->id }}">{{ $group->name }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <!-- List Count -->
@@ -141,6 +151,7 @@
                             data-id="{{ $cctv->id }}"
                             data-name="{{ $cctv->name }}"
                             data-ip="{{ $cctv->ip }}"
+                            data-group="{{ $cctv->cctv_group_id }}"
                             class="cctv-list-item w-full text-left bg-[#090d16]/40 hover:bg-slate-800/40 border border-slate-850 p-3 rounded-xl flex items-center justify-between gap-3 group transition-all">
                         <div class="min-w-0">
                             <span class="block text-xs font-bold text-slate-300 group-hover:text-slate-100 truncate transition-colors">{{ $cctv->name }}</span>
@@ -410,10 +421,14 @@
             // Real-time Search Filter inside Sidebar
             function filterCctvs() {
                 const query = document.getElementById('search-input').value.toLowerCase();
+                const selectedGroup = document.getElementById('group-filter').value;
                 let activeCount = 0;
 
                 cctvs.forEach(cctv => {
-                    const match = cctv.name.toLowerCase().includes(query) || cctv.ip.toLowerCase().includes(query);
+                    const matchSearch = cctv.name.toLowerCase().includes(query) || cctv.ip.toLowerCase().includes(query);
+                    const matchGroup = selectedGroup === '' || String(cctv.cctv_group_id) === String(selectedGroup);
+                    const match = matchSearch && matchGroup;
+                    
                     const listItem = document.querySelector(`.cctv-list-item[data-id="${cctv.id}"]`);
                     const marker = markers[cctv.id];
 

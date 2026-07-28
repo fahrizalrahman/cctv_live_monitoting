@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\CctvGroupController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [MapController::class, 'index'])->name('map');
@@ -24,6 +25,7 @@ Route::middleware('auth')->group(function () {
     // Admin Group
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('cctvs', CctvController::class);
+        Route::resource('groups', CctvGroupController::class);
         
         // Users
         Route::get('users', [UserController::class, 'index'])->name('users.index');

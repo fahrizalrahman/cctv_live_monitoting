@@ -20,14 +20,29 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Left Column: Fields -->
             <div class="space-y-4">
-                <!-- CCTV Name -->
-                <div>
-                    <label for="name" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">CCTV Name</label>
-                    <input type="text" id="name" name="name" value="{{ old('name') }}" placeholder="e.g. Bundaran HI Main Camera" required
-                           class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
-                    @error('name')
-                        <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
-                    @enderror
+                <!-- CCTV Name & Group -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="name" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">CCTV Name</label>
+                        <input type="text" id="name" name="name" value="{{ old('name') }}" placeholder="e.g. Bundaran HI Main Camera" required
+                               class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
+                        @error('name')
+                            <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label for="cctv_group_id" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Group <span class="text-slate-500 font-normal capitalize">(Optional)</span></label>
+                        <select id="cctv_group_id" name="cctv_group_id"
+                                class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm">
+                            <option value="">No Group</option>
+                            @foreach($groups as $group)
+                                <option value="{{ $group->id }}" {{ old('cctv_group_id') == $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('cctv_group_id')
+                            <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 <!-- IP & Port -->
