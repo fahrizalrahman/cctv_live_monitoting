@@ -192,16 +192,23 @@
             </div>
 
             <!-- Video Player Area -->
-            <div class="aspect-video bg-black overflow-hidden flex items-center justify-center relative">
-                <!-- Loading Indicator -->
-                <div id="modal-player-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-[#070b12]/90 z-10">
+            <div id="modal-video-container" class="aspect-video bg-black overflow-hidden flex items-center justify-center relative">
+                <!-- Loading Indicator (for non-preloaded streams) -->
+                <div id="modal-player-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-[#070b12]/90 z-20">
                     <i data-lucide="loader-2" class="w-8 h-8 text-indigo-500 animate-spin mb-3"></i>
                     <span class="block text-xs font-semibold text-slate-300">Menghubungkan ke CCTV...</span>
                 </div>
                 
-                <video id="modal-video" class="w-full h-full object-cover bg-black relative z-0" autoplay muted playsinline controls></video>
-                <iframe id="modal-video-frame" class="w-full h-full border-0 hidden relative z-0" allow="fullscreen; autoplay"></iframe>
-                <div id="modal-player-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-[#070b12]/90 p-4 text-center z-20">
+                <video id="modal-video" class="w-full h-full object-cover bg-black absolute inset-0 z-10 hidden" autoplay muted playsinline controls></video>
+                
+                <!-- PRELOADED WEBRTC IFRAMES -->
+                @foreach($cctvs as $cctv)
+                    @if($cctv->status === 'active' && Str::startsWith(strtolower($cctv->stream_url), 'rtsp://'))
+                        <iframe id="preload-frame-{{ $cctv->id }}" src="{{ url('/') }}/go2rtc/stream.html?src=cctv_{{ $cctv->id }}" class="absolute inset-0 w-full h-full border-0 opacity-0 pointer-events-none z-0" allow="fullscreen; autoplay"></iframe>
+                    @endif
+                @endforeach
+                
+                <div id="modal-player-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-[#070b12]/90 p-4 text-center z-30">
                     <i data-lucide="video-off" class="w-8 h-8 text-rose-500 mb-2"></i>
                     <span class="block text-xs font-semibold text-slate-300">Gagal Memutar Live Stream</span>
                     <span class="block text-[10px] text-slate-500 mt-1">Harap periksa kecocokan link HLS/M3U8 atau konfigurasikan transcoder RTSP Anda.</span>
@@ -338,7 +345,6 @@
 
                 // Elements
                 const video = document.getElementById('modal-video');
-                const iframe = document.getElementById('modal-video-frame');
                 const errorAlert = document.getElementById('modal-player-error');
                 const loadingAlert = document.getElementById('modal-player-loading');
                 
@@ -350,29 +356,31 @@
                 video.pause();
                 video.removeAttribute('src');
                 video.load();
-                iframe.removeAttribute('src');
                 errorAlert.classList.add('hidden');
-                loadingAlert.classList.remove('hidden');
+                loadingAlert.classList.add('hidden'); // Default hide
+
+                // Hide all preloaded frames
+                document.querySelectorAll('[id^="preload-frame-"]').forEach(iframe => {
+                    iframe.classList.add('opacity-0', 'pointer-events-none', 'z-0');
+                    iframe.classList.remove('opacity-100', 'pointer-events-auto', 'z-10');
+                });
 
                 // Add event listeners to hide loading when playing
                 video.onplaying = function() { loadingAlert.classList.add('hidden'); };
                 video.onloadeddata = function() { loadingAlert.classList.add('hidden'); };
 
                 if (cctv.stream_url && cctv.stream_url.toLowerCase().startsWith('rtsp://')) {
-                    // Use go2rtc ultra-low latency WebRTC player
-                    video.classList.add('hidden');
-                    iframe.classList.remove('hidden');
-                    
-                    // We let go2rtc handle the stream using WebRTC automatically
-                    iframe.src = `{{ url('/') }}/go2rtc/stream.html?src=cctv_${cctv.id}`;
-                    
-                    // Hide loading when iframe loads (go2rtc player handles its own UI)
-                    iframe.onload = function() { loadingAlert.classList.add('hidden'); };
-                    
+                    // Show the specific preloaded iframe
+                    const activeIframe = document.getElementById(`preload-frame-${cctv.id}`);
+                    if (activeIframe) {
+                        video.classList.add('hidden');
+                        activeIframe.classList.remove('opacity-0', 'pointer-events-none', 'z-0');
+                        activeIframe.classList.add('opacity-100', 'pointer-events-auto', 'z-10');
+                    }
                 } else {
                     // Native Video playback for raw HTTP/HLS links
-                    iframe.classList.add('hidden');
                     video.classList.remove('hidden');
+                    loadingAlert.classList.remove('hidden');
                     const playbackUrl = cctv.stream_url;
 
                     if (Hls.isSupported()) {
