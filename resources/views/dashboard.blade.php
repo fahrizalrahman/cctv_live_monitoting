@@ -295,8 +295,6 @@
     document.addEventListener("DOMContentLoaded", () => {
         changeLayout(1);
         fetchDashboardStats();
-        // Auto-refresh stats every 30 seconds
-        setInterval(fetchDashboardStats, 30000);
     });
 
     async function fetchDashboardStats() {
@@ -330,8 +328,24 @@
             if (offlineEl) {
                 offlineEl.innerHTML = offlineCount;
             }
+
+            // Highlight active video card
+            document.querySelectorAll('.cctv-slot').forEach(slot => {
+                slot.classList.remove('border-emerald-500/50', 'shadow-[0_0_15px_rgba(16,185,129,0.1)]');
+            });
+            Object.keys(activePlayers).forEach(slotId => {
+                const selectEl = document.querySelector(`#selector-${slotId} select`);
+                const cctvId = selectEl ? selectEl.value : null;
+                if (cctvId && statuses[cctvId] === 'online') {
+                    document.getElementById(`slot-${slotId}`).classList.add('border-emerald-500/50', 'shadow-[0_0_15px_rgba(16,185,129,0.1)]');
+                }
+            });
+            
         } catch (error) {
             console.error("Failed to fetch real-time status for dashboard:", error);
+        } finally {
+            // Poll again after 5 seconds
+            setTimeout(fetchDashboardStats, 5000);
         }
     }
 </script>

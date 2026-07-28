@@ -128,8 +128,6 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         fetchStatusData();
-        // Auto-refresh real-time status every 30 seconds
-        setInterval(fetchStatusData, 30000);
     });
 
     async function fetchStatusData() {
@@ -157,6 +155,8 @@
             });
         } catch (e) {
             console.error("Failed to load real-time status", e);
+        } finally {
+            setTimeout(fetchStatusData, 5000);
         }
     }
 </script>

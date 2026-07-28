@@ -14,9 +14,10 @@ class CctvStatusController extends Controller
      */
     public function index()
     {
-        // Cache the status for 30 seconds to prevent overwhelming the server with rapid pings
-        $statuses = Cache::remember('cctv_realtime_statuses', 30, function () {
+        // Cache the status for 2 seconds to prevent overwhelming the server while keeping it real-time
+        $statuses = Cache::remember('cctv_realtime_statuses', 2, function () {
             $cctvs = Cctv::all(['id', 'ip', 'port', 'status']);
+            $sockets = [];
             $results = [];
 
             foreach ($cctvs as $cctv) {
@@ -28,15 +29,47 @@ class CctvStatusController extends Controller
                 $host = $cctv->ip;
                 $port = !empty($cctv->port) ? $cctv->port : 554;
                 
-                // Use a reliable synchronous check with a very short timeout (1 second)
-                // This is safer across all OS environments (Windows, Mac, Linux) compared to async streams
-                $fp = @fsockopen($host, $port, $errno, $errstr, 1);
-                
-                if ($fp) {
-                    $results[$cctv->id] = 'online';
-                    @fclose($fp);
+                // Open a non-blocking async socket connection
+                $socket = @stream_socket_client("tcp://$host:$port", $errno, $errstr, 1, STREAM_CLIENT_ASYNC_CONNECT);
+                if ($socket) {
+                    stream_set_blocking($socket, false);
+                    $sockets[$cctv->id] = $socket;
                 } else {
                     $results[$cctv->id] = 'offline';
+                }
+            }
+
+            // Wait for sockets to connect or fail with a total timeout of 1 second
+            if (!empty($sockets)) {
+                $read = [];
+                $write = $sockets;
+                $except = $sockets;
+                
+                if (@stream_select($read, $write, $except, 1) > 0) {
+                    foreach ($write as $id => $socket) {
+                        $sockCheck = socket_import_stream($socket);
+                        if ($sockCheck) {
+                            $error = socket_get_option($sockCheck, SOL_SOCKET, SO_ERROR);
+                            if ($error === 0) {
+                                $results[$id] = 'online';
+                            } else {
+                                $results[$id] = 'offline';
+                            }
+                        } else {
+                            $results[$id] = 'online'; // Fallback
+                        }
+                    }
+                    foreach ($except as $id => $socket) {
+                        $results[$id] = 'offline';
+                    }
+                }
+
+                // Close all sockets and mark remaining as offline
+                foreach ($sockets as $id => $socket) {
+                    if (!isset($results[$id])) {
+                        $results[$id] = 'offline';
+                    }
+                    @fclose($socket);
                 }
             }
 

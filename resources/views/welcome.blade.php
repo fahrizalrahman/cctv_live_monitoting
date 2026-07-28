@@ -500,8 +500,6 @@
             window.onload = () => {
                 initMap();
                 fetchRealTimeStatus();
-                // Auto-refresh real-time status every 30 seconds
-                setInterval(fetchRealTimeStatus, 30000);
             };
 
             // Fetch Real-time CCTV status
@@ -577,6 +575,9 @@
                     
                 } catch (error) {
                     console.error("Failed to fetch real-time status:", error);
+                } finally {
+                    // Poll again after 5 seconds
+                    setTimeout(fetchRealTimeStatus, 5000);
                 }
             }
         </script>
