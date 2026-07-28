@@ -164,7 +164,7 @@
                             <span class="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                             <span id="label-name-{{ $i }}">Camera</span>
                         </div>
-                        <div class="text-[9px] text-slate-500 mt-0.5" id="label-details-{{ $i }}">IP: 0.0.0.0</div>
+                        <div class="text-[9px] text-slate-500 mt-0.5" id="label-details-{{ $i }}">ID: -</div>
                     </div>
 
                     <!-- Close/Unload button -->
@@ -275,7 +275,7 @@
 
         // Update labels
         labelName.textContent = cctvName;
-        labelDetails.textContent = `IP: ${cctvIp}:${cctvPort}`;
+        labelDetails.textContent = `ID: ${String(cctvId).padStart(4, '0')}`;
 
         // Unload first if already playing something in this slot
         unloadSlot(slotId);

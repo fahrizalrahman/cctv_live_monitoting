@@ -163,7 +163,7 @@
                             class="cctv-list-item w-full text-left bg-[#090d16]/40 hover:bg-slate-800/40 border border-slate-850 p-3 rounded-xl flex items-center justify-between gap-3 group transition-all">
                         <div class="min-w-0">
                             <span class="block text-xs font-bold text-slate-300 group-hover:text-slate-100 truncate transition-colors">{{ $cctv->name }}</span>
-                            <span class="block text-[9px] text-slate-500 font-mono mt-0.5 truncate">IP: {{ $cctv->ip }}</span>
+                            <span class="block text-[9px] text-slate-500 font-mono mt-0.5 truncate">ID: {{ str_pad($cctv->id, 4, '0', STR_PAD_LEFT) }}</span>
                         </div>
                         <div class="shrink-0 flex items-center gap-2" id="cctv-status-{{ $cctv->id }}">
                             <span class="text-[10px] text-slate-400 font-medium">Checking...</span>
