@@ -16,6 +16,7 @@
             $defaultZoom = $mapZoomLevel && $mapZoomLevel->value ? $mapZoomLevel->value : '12';
             
             $watermarkLogo = \App\Models\Setting::where('key', 'watermark_logo')->first();
+            $runningText = \App\Models\Setting::where('key', 'running_text')->first();
         @endphp
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -222,7 +223,7 @@
                     <img src="{{ Storage::url($watermarkLogo->value) }}" alt="Watermark" class="custom-watermark opacity-70 drop-shadow-md object-contain" />
                 @endif
                 
-                <video id="modal-video" class="w-full h-full object-cover bg-black relative z-0" autoplay muted playsinline controls></video>
+                <video id="modal-video" class="w-full h-full object-fill bg-black relative z-0" autoplay muted playsinline controls></video>
                 <iframe id="modal-video-frame" class="w-full h-full border-0 hidden relative z-0" allow="fullscreen; autoplay"></iframe>
                 <div id="modal-player-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-[#070b12]/90 p-4 text-center z-20">
                     <i data-lucide="video-off" class="w-8 h-8 text-rose-500 mb-2"></i>
@@ -230,6 +231,13 @@
                     <span class="block text-[10px] text-slate-500 mt-1">Harap periksa kecocokan link HLS/M3U8 atau konfigurasikan transcoder RTSP Anda.</span>
                 </div>
             </div>
+            
+            <!-- Running Text Marquee (Below Video) -->
+            @if($runningText && $runningText->value)
+                <div class="w-full bg-[#0a0e1a] border-t border-slate-800">
+                    <marquee class="py-1.5 px-4 text-xs md:text-sm font-medium text-indigo-300 tracking-wide" scrollamount="5">{{ $runningText->value }}</marquee>
+                </div>
+            @endif
 
             <!-- Modal Footer -->
             <div class="bg-[#131b2e] px-6 py-3 flex items-center justify-between text-xs text-slate-400 font-medium border-t border-slate-800/80">
@@ -239,6 +247,7 @@
                 </span>
                 <span id="footer-time" class="font-mono text-slate-500">17:36:03</span>
             </div>
+            <!-- End Modal Card -->
         </div>
 
         <script>
@@ -394,7 +403,7 @@
                         loadingAlert.classList.add('hidden'); 
                         try {
                             const style = document.createElement('style');
-                            style.innerHTML = '.info, #info { display: none !important; }';
+                            style.innerHTML = '.info, #info { display: none !important; } video { object-fit: fill !important; width: 100% !important; height: 100% !important; } body { margin: 0; padding: 0; overflow: hidden; }';
                             iframe.contentWindow.document.head.appendChild(style);
                         } catch(e) {}
                     };

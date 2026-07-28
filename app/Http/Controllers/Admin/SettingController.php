@@ -18,14 +18,16 @@ class SettingController extends Controller
         $mapCenterLng = Setting::where('key', 'map_center_longitude')->first();
         $mapZoomLevel = Setting::where('key', 'map_zoom_level')->first();
         $watermarkLogo = Setting::where('key', 'watermark_logo')->first();
+        $runningText = Setting::where('key', 'running_text')->first();
         
-        return view('admin.settings.index', compact('appLogo', 'appName', 'mapMarkerIcon', 'mapCenterLat', 'mapCenterLng', 'mapZoomLevel', 'watermarkLogo'));
+        return view('admin.settings.index', compact('appLogo', 'appName', 'mapMarkerIcon', 'mapCenterLat', 'mapCenterLng', 'mapZoomLevel', 'watermarkLogo', 'runningText'));
     }
 
     public function update(Request $request)
     {
         $request->validate([
             'app_name' => 'nullable|string|max:255',
+            'running_text' => 'nullable|string|max:1000',
             'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'watermark_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'map_marker_icon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -38,6 +40,13 @@ class SettingController extends Controller
             Setting::updateOrCreate(
                 ['key' => 'app_name'],
                 ['value' => $request->app_name]
+            );
+        }
+
+        if ($request->has('running_text')) {
+            Setting::updateOrCreate(
+                ['key' => 'running_text'],
+                ['value' => $request->running_text]
             );
         }
 

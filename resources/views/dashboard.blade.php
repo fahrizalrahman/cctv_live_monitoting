@@ -4,6 +4,7 @@
 
 @php
     $watermarkLogo = \App\Models\Setting::where('key', 'watermark_logo')->first();
+    $runningText = \App\Models\Setting::where('key', 'running_text')->first();
 @endphp
 
 @section('content')
@@ -146,9 +147,16 @@
                     </div>
                     
                     <div class="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
-                        <video id="video-{{ $i }}" class="w-full h-full object-cover relative z-10 hidden" autoplay muted playsinline></video>
+                        <video id="video-{{ $i }}" class="w-full h-full object-fill relative z-10 hidden" autoplay muted playsinline></video>
                         <iframe id="iframe-{{ $i }}" class="w-full h-full border-0 hidden relative z-10" allow="fullscreen; autoplay"></iframe>
-                    </div>                 
+                    </div>
+
+                    <!-- Running Text Marquee (Below Video) -->
+                    @if($runningText && $runningText->value)
+                        <div class="w-full bg-[#131b2e] border-t border-slate-800 shrink-0">
+                            <marquee class="py-1.5 text-[10px] md:text-xs font-medium text-indigo-300 tracking-wide" scrollamount="4">{{ $runningText->value }}</marquee>
+                        </div>
+                    @endif
                     
                     <!-- Info overlay -->
                     <div class="absolute top-4 left-4 bg-[#090d16]/80 backdrop-blur-md border border-slate-800 rounded-lg px-3 py-1.5 text-[10px] text-slate-300 font-mono pointer-events-none z-30">
@@ -287,7 +295,7 @@
                 loadingAlert.classList.add('hidden'); 
                 try {
                     const style = document.createElement('style');
-                    style.innerHTML = '.info, #info { display: none !important; }';
+                    style.innerHTML = '.info, #info { display: none !important; } video { object-fit: fill !important; width: 100% !important; height: 100% !important; } body { margin: 0; padding: 0; overflow: hidden; }';
                     iframe.contentWindow.document.head.appendChild(style);
                 } catch(e) {}
             };

@@ -28,6 +28,17 @@
             @enderror
         </div>
 
+        <!-- Running Text -->
+        <div>
+            <label for="running_text" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Running Text (Marquee)</label>
+            <input type="text" id="running_text" name="running_text" value="{{ old('running_text', $runningText->value ?? '') }}" placeholder="Contoh: Selamat datang di sistem pantau CCTV terpadu..."
+                   class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
+            <span class="block text-[10px] text-slate-500 mt-1">Text to scroll at the bottom of the public pages. Leave empty to hide.</span>
+            @error('running_text')
+                <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
+            @enderror
+        </div>
+
         <!-- App Logo -->
         <div>
             <label for="app_logo" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Application Logo</label>
