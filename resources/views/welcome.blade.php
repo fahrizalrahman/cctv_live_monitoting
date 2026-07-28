@@ -128,13 +128,18 @@
                 </div>
             </div>
 
-            <!-- Group Filter -->
-            <div class="mb-5">
+            <div class="mb-5 flex gap-2">
                 <select id="group-filter" onchange="filterCctvs()" class="block w-full px-3 py-2 bg-[#090d16]/90 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-xs">
                     <option value="">Semua Group</option>
                     @foreach($groups as $group)
                         <option value="{{ $group->id }}">{{ $group->name }}</option>
                     @endforeach
+                </select>
+
+                <select id="status-filter" onchange="filterCctvs()" class="block w-full px-3 py-2 bg-[#090d16]/90 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-xs">
+                    <option value="">Semua Status</option>
+                    <option value="active">Online</option>
+                    <option value="inactive">Offline</option>
                 </select>
             </div>
 
@@ -426,12 +431,17 @@
             function filterCctvs() {
                 const query = document.getElementById('search-input').value.toLowerCase();
                 const selectedGroup = document.getElementById('group-filter').value;
+                const selectedStatus = document.getElementById('status-filter').value;
                 let activeCount = 0;
 
                 cctvs.forEach(cctv => {
                     const matchSearch = cctv.name.toLowerCase().includes(query) || cctv.ip.toLowerCase().includes(query);
                     const matchGroup = selectedGroup === '' || String(cctv.cctv_group_id) === String(selectedGroup);
-                    const match = matchSearch && matchGroup;
+                    
+                    // Filter by status (note: during 'checking' state, it might not match strict active/inactive if selected)
+                    const matchStatus = selectedStatus === '' || cctv.realTimeStatus === selectedStatus;
+                    
+                    const match = matchSearch && matchGroup && matchStatus;
                     
                     const listItem = document.querySelector(`.cctv-list-item[data-id="${cctv.id}"]`);
                     const marker = markers[cctv.id];
