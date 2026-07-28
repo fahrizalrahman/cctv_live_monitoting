@@ -119,8 +119,8 @@
                 <div id="player-container-{{ $i }}" class="absolute inset-0 flex flex-col hidden z-20 bg-black">
                     <!-- Watermark Logo -->
                     @if($watermarkLogo && $watermarkLogo->value)
-                        <div class="absolute top-4 right-4 z-40 opacity-70 pointer-events-none drop-shadow-md">
-                            <img src="{{ Storage::url($watermarkLogo->value) }}" alt="Watermark" class="h-6 md:h-8 object-contain" />
+                        <div class="absolute top-2 right-2 md:top-4 md:right-4 z-40 opacity-70 pointer-events-none drop-shadow-md">
+                            <img src="{{ Storage::url($watermarkLogo->value) }}" alt="Watermark" class="h-3 md:h-8 object-contain" />
                         </div>
                     @endif
                     

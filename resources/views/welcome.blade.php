@@ -203,8 +203,8 @@
                 
                 <!-- Watermark Logo -->
                 @if($watermarkLogo && $watermarkLogo->value)
-                    <div class="absolute top-4 right-4 z-40 opacity-70 pointer-events-none drop-shadow-md">
-                        <img src="{{ Storage::url($watermarkLogo->value) }}" alt="Watermark" class="h-8 md:h-12 object-contain" />
+                    <div class="absolute top-2 right-2 md:top-4 md:right-4 z-40 opacity-70 pointer-events-none drop-shadow-md">
+                        <img src="{{ Storage::url($watermarkLogo->value) }}" alt="Watermark" class="h-4 md:h-10 object-contain" />
                     </div>
                 @endif
                 
