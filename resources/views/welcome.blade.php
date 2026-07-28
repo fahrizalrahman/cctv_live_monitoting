@@ -433,6 +433,7 @@
                 const selectedGroup = document.getElementById('group-filter').value;
                 const selectedStatus = document.getElementById('status-filter').value;
                 let activeCount = 0;
+                let matchCount = 0;
 
                 cctvs.forEach(cctv => {
                     const matchSearch = cctv.name.toLowerCase().includes(query) || cctv.ip.toLowerCase().includes(query);
@@ -450,13 +451,24 @@
                         if (listItem) listItem.classList.remove('hidden');
                         if (marker) marker.addTo(map);
                         if (cctv.realTimeStatus === 'active') activeCount++;
+                        matchCount++;
                     } else {
                         if (listItem) listItem.classList.add('hidden');
                         if (marker) map.removeLayer(marker);
                     }
                 });
 
-                document.getElementById('active-count').textContent = `${activeCount} Online`;
+                const countEl = document.getElementById('active-count');
+                if (selectedStatus === 'inactive') {
+                    countEl.textContent = `${matchCount} OFFLINE`;
+                    countEl.className = 'text-rose-400 font-bold';
+                } else if (selectedStatus === 'active') {
+                    countEl.textContent = `${matchCount} ONLINE`;
+                    countEl.className = 'text-emerald-400 font-bold';
+                } else {
+                    countEl.textContent = `${activeCount} ONLINE`;
+                    countEl.className = 'text-slate-400 font-bold';
+                }
             }
 
             // Realtime clock in modal footer
