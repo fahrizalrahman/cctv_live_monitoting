@@ -11,13 +11,8 @@ use Illuminate\Support\Facades\Http;
 
 class CctvController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
+    private function getFilteredQuery(Request $request)
     {
-        Gate::authorize('manage cctvs');
-        
         $query = Cctv::with('group');
         if ($request->filled('cctv_group_id')) {
             $query->where('cctv_group_id', $request->cctv_group_id);
@@ -47,6 +42,26 @@ class CctvController extends Controller
             }
             $query->whereIn('id', $matchedIds);
         }
+        
+        if ($request->filled('visibility')) {
+            if ($request->visibility === 'visible') {
+                $query->where('is_visible', true);
+            } elseif ($request->visibility === 'hidden') {
+                $query->where('is_visible', false);
+            }
+        }
+        
+        return $query;
+    }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        Gate::authorize('manage cctvs');
+        
+        $query = $this->getFilteredQuery($request);
         
         $cctvs = $query->latest()->paginate(10)->withQueryString();
         $groups = CctvGroup::orderBy('name')->get();
@@ -172,5 +187,27 @@ class CctvController extends Controller
         $cctv->update(['is_visible' => !$cctv->is_visible]);
         $status = $cctv->is_visible ? 'visible on public map' : 'hidden from public map';
         return redirect()->back()->with('success', "CCTV {$cctv->name} is now {$status}.");
+    }
+
+    public function bulkVisibility(Request $request)
+    {
+        Gate::authorize('manage cctvs');
+
+        $action = $request->input('action');
+        if (!in_array($action, ['show', 'hide'])) {
+            return redirect()->back()->with('error', 'Invalid bulk action.');
+        }
+
+        $query = $this->getFilteredQuery($request);
+        // Extract IDs instead of running a bulk update directly to ensure we only update what was matched
+        $ids = $query->pluck('cctvs.id')->toArray();
+
+        if (count($ids) > 0) {
+            Cctv::whereIn('id', $ids)->update(['is_visible' => ($action === 'show')]);
+            $statusStr = $action === 'show' ? 'shown on public map' : 'hidden from public map';
+            return redirect()->back()->with('success', count($ids) . " CCTV(s) have been successfully {$statusStr}.");
+        }
+
+        return redirect()->back()->with('error', 'No CCTVs matched the current filters to update.');
     }
 }

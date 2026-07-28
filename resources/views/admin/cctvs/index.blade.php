@@ -40,13 +40,47 @@
                         <i data-lucide="chevron-down" class="w-4 h-4"></i>
                     </div>
                 </div>
+                <!-- Visibility Filter (Server-side) -->
+                <div class="relative w-40 shrink-0">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                        <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <select name="visibility" onchange="this.form.submit()" class="block w-full pl-9 pr-8 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-xs appearance-none cursor-pointer">
+                        <option value="">All Visibility</option>
+                        <option value="visible" {{ request('visibility') === 'visible' ? 'selected' : '' }}>Visible</option>
+                        <option value="hidden" {{ request('visibility') === 'hidden' ? 'selected' : '' }}>Hidden</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-slate-500">
+                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                    </div>
+                </div>
                 
-                @if(request()->filled('cctv_group_id') || request()->filled('status'))
+                @if(request()->filled('cctv_group_id') || request()->filled('status') || request()->filled('visibility'))
                     <a href="{{ route('admin.cctvs.index') }}" class="p-2.5 bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white rounded-xl transition-all border border-rose-500/20 shrink-0" title="Clear Filter">
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </a>
                 @endif
             </form>
+
+            @if(request()->filled('cctv_group_id') || request()->filled('status') || request()->filled('visibility'))
+                <form action="{{ route('admin.cctvs.bulk_visibility') }}" method="POST" class="flex items-center gap-2 shrink-0">
+                    @csrf
+                    <input type="hidden" name="cctv_group_id" value="{{ request('cctv_group_id') }}">
+                    <input type="hidden" name="status" value="{{ request('status') }}">
+                    <input type="hidden" name="visibility" value="{{ request('visibility') }}">
+                    
+                    <button type="submit" name="action" value="show" class="flex items-center gap-1.5 px-3 py-2.5 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl text-xs font-semibold border border-emerald-500/20 transition-all shadow-lg shadow-emerald-900/20" onclick="return confirm('Show all filtered CCTVs on public map?')">
+                        <i data-lucide="eye" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Show All</span>
+                    </button>
+                    
+                    <button type="submit" name="action" value="hide" class="flex items-center gap-1.5 px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 transition-all" onclick="return confirm('Hide all filtered CCTVs from public map?')">
+                        <i data-lucide="eye-off" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Hide All</span>
+                    </button>
+                </form>
+            @endif
+
             <a href="{{ route('admin.cctvs.create') }}" class="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/20 transition-all shrink-0">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i>
                 <span>Add New CCTV</span>
