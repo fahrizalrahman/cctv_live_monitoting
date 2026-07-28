@@ -119,9 +119,24 @@
                 <div id="player-container-{{ $i }}" class="absolute inset-0 flex flex-col hidden z-20 bg-black">
                     <!-- Watermark Logo -->
                     @if($watermarkLogo && $watermarkLogo->value)
-                        <div class="absolute top-2 right-2 md:top-4 md:right-4 z-40 opacity-70 pointer-events-none drop-shadow-md">
-                            <img src="{{ Storage::url($watermarkLogo->value) }}" alt="Watermark" class="h-3 md:h-8 object-contain" />
-                        </div>
+                        <style>
+                            .custom-watermark-dashboard {
+                                position: absolute;
+                                top: 6px;
+                                right: 6px;
+                                height: 16px;
+                                z-index: 40;
+                                pointer-events: none;
+                            }
+                            @media (min-width: 768px) {
+                                .custom-watermark-dashboard {
+                                    top: 12px;
+                                    right: 12px;
+                                    height: 28px;
+                                }
+                            }
+                        </style>
+                        <img src="{{ Storage::url($watermarkLogo->value) }}" alt="Watermark" class="custom-watermark-dashboard opacity-70 drop-shadow-md object-contain" />
                     @endif
                     
                     <!-- Loading Indicator -->

@@ -200,12 +200,26 @@
                     <i data-lucide="loader-2" class="w-8 h-8 text-indigo-500 animate-spin mb-3"></i>
                     <span class="block text-xs font-semibold text-slate-300">Menghubungkan ke CCTV...</span>
                 </div>
-                
                 <!-- Watermark Logo -->
                 @if($watermarkLogo && $watermarkLogo->value)
-                    <div class="absolute top-2 right-2 md:top-4 md:right-4 z-40 opacity-70 pointer-events-none drop-shadow-md">
-                        <img src="{{ Storage::url($watermarkLogo->value) }}" alt="Watermark" class="h-4 md:h-10 object-contain" />
-                    </div>
+                    <style>
+                        .custom-watermark {
+                            position: absolute;
+                            top: 8px;
+                            right: 8px;
+                            height: 20px;
+                            z-index: 40;
+                            pointer-events: none;
+                        }
+                        @media (min-width: 768px) {
+                            .custom-watermark {
+                                top: 16px;
+                                right: 16px;
+                                height: 44px;
+                            }
+                        }
+                    </style>
+                    <img src="{{ Storage::url($watermarkLogo->value) }}" alt="Watermark" class="custom-watermark opacity-70 drop-shadow-md object-contain" />
                 @endif
                 
                 <video id="modal-video" class="w-full h-full object-cover bg-black relative z-0" autoplay muted playsinline controls></video>
