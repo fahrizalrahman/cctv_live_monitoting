@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
 
     // Admin Group
     Route::prefix('admin')->name('admin.')->group(function () {
+        Route::patch('cctvs/{cctv}/toggle-visibility', [CctvController::class, 'toggleVisibility'])->name('cctvs.toggle_visibility');
         Route::resource('cctvs', CctvController::class);
         Route::resource('groups', CctvGroupController::class);
         

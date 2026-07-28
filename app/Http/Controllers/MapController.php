@@ -10,8 +10,10 @@ class MapController extends Controller
 {
     public function index()
     {
-        $cctvs = Cctv::with('group')->get();
-        $groups = CctvGroup::with('cctvs')->orderBy('name')->get();
+        $cctvs = Cctv::with('group')->where('is_visible', true)->get();
+        $groups = CctvGroup::with(['cctvs' => function ($query) {
+            $query->where('is_visible', true);
+        }])->orderBy('name')->get();
         return view('welcome', compact('cctvs', 'groups'));
     }
 }

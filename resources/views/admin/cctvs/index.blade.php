@@ -90,6 +90,14 @@
                         </td>
                         <td class="py-4 px-4 text-right">
                             <div class="flex items-center justify-end gap-2">
+                                <form action="{{ route('admin.cctvs.toggle_visibility', $cctv->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="p-1.5 {{ $cctv->is_visible ? 'bg-emerald-600/10 text-emerald-400 hover:bg-emerald-600 hover:text-white border-emerald-500/20' : 'bg-slate-600/10 text-slate-400 hover:bg-slate-600 hover:text-white border-slate-500/20' }} rounded-lg border transition-all" title="{{ $cctv->is_visible ? 'Hide from public map' : 'Show on public map' }}">
+                                        <i data-lucide="{{ $cctv->is_visible ? 'eye' : 'eye-off' }}" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </form>
+
                                 <a href="{{ route('admin.cctvs.edit', $cctv->id) }}" class="p-1.5 bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600 hover:text-white rounded-lg border border-indigo-500/20 transition-all" title="Edit">
                                     <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
                                 </a>

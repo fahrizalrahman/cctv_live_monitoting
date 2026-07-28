@@ -141,4 +141,11 @@ class CctvController extends Controller
             // Swallow connection resets from go2rtc restarting itself
         }
     }
+
+    public function toggleVisibility(Cctv $cctv)
+    {
+        $cctv->update(['is_visible' => !$cctv->is_visible]);
+        $status = $cctv->is_visible ? 'visible on public map' : 'hidden from public map';
+        return redirect()->back()->with('success', "CCTV {$cctv->name} is now {$status}.");
+    }
 }

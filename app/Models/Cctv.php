@@ -18,6 +18,7 @@ class Cctv extends Model
         'longitude',
         'status',
         'cctv_group_id',
+        'is_visible',
     ];
 
     public function group()
