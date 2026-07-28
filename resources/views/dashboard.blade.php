@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
-@section('page_title', 'Live Monitoring Dashboard')
+@section('page_title', 'Interactive Dashboard')
+
+@php
+    $watermarkLogo = \App\Models\Setting::where('key', 'watermark_logo')->first();
+@endphp
 
 @section('content')
 <!-- Dashboard Wrapper (Flex Col Full Height) -->
@@ -113,6 +117,13 @@
 
                 <!-- Player Container (hidden by default) -->
                 <div id="player-container-{{ $i }}" class="absolute inset-0 flex flex-col hidden z-20 bg-black">
+                    <!-- Watermark Logo -->
+                    @if($watermarkLogo && $watermarkLogo->value)
+                        <div class="absolute top-4 right-4 z-40 opacity-70 pointer-events-none drop-shadow-md">
+                            <img src="{{ Storage::url($watermarkLogo->value) }}" alt="Watermark" class="h-6 md:h-8 object-contain" />
+                        </div>
+                    @endif
+                    
                     <!-- Loading Indicator -->
                     <div id="player-loading-{{ $i }}" class="absolute inset-0 flex flex-col items-center justify-center bg-[#070b12]/90 z-20">
                         <i data-lucide="loader-2" class="w-6 h-6 text-indigo-500 animate-spin mb-2"></i>

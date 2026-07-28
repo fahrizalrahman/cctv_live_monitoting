@@ -14,6 +14,8 @@
             
             $mapZoomLevel = \App\Models\Setting::where('key', 'map_zoom_level')->first();
             $defaultZoom = $mapZoomLevel && $mapZoomLevel->value ? $mapZoomLevel->value : '12';
+            
+            $watermarkLogo = \App\Models\Setting::where('key', 'watermark_logo')->first();
         @endphp
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -198,6 +200,13 @@
                     <i data-lucide="loader-2" class="w-8 h-8 text-indigo-500 animate-spin mb-3"></i>
                     <span class="block text-xs font-semibold text-slate-300">Menghubungkan ke CCTV...</span>
                 </div>
+                
+                <!-- Watermark Logo -->
+                @if($watermarkLogo && $watermarkLogo->value)
+                    <div class="absolute top-4 right-4 z-40 opacity-70 pointer-events-none drop-shadow-md">
+                        <img src="{{ Storage::url($watermarkLogo->value) }}" alt="Watermark" class="h-8 md:h-12 object-contain" />
+                    </div>
+                @endif
                 
                 <video id="modal-video" class="w-full h-full object-cover bg-black relative z-0" autoplay muted playsinline controls></video>
                 <iframe id="modal-video-frame" class="w-full h-full border-0 hidden relative z-0" allow="fullscreen; autoplay"></iframe>

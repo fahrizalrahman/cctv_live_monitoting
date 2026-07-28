@@ -17,8 +17,9 @@ class SettingController extends Controller
         $mapCenterLat = Setting::where('key', 'map_center_latitude')->first();
         $mapCenterLng = Setting::where('key', 'map_center_longitude')->first();
         $mapZoomLevel = Setting::where('key', 'map_zoom_level')->first();
+        $watermarkLogo = Setting::where('key', 'watermark_logo')->first();
         
-        return view('admin.settings.index', compact('appLogo', 'appName', 'mapMarkerIcon', 'mapCenterLat', 'mapCenterLng', 'mapZoomLevel'));
+        return view('admin.settings.index', compact('appLogo', 'appName', 'mapMarkerIcon', 'mapCenterLat', 'mapCenterLng', 'mapZoomLevel', 'watermarkLogo'));
     }
 
     public function update(Request $request)
@@ -26,6 +27,7 @@ class SettingController extends Controller
         $request->validate([
             'app_name' => 'nullable|string|max:255',
             'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'watermark_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'map_marker_icon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'map_center_latitude' => 'nullable|numeric|between:-90,90',
             'map_center_longitude' => 'nullable|numeric|between:-180,180',
@@ -65,6 +67,13 @@ class SettingController extends Controller
             $filename = time() . '_logo_' . $file->getClientOriginalName();
             $path = $file->storeAs('logos', $filename, 'public');
             Setting::updateOrCreate(['key' => 'app_logo'], ['value' => $path]);
+        }
+
+        if ($request->hasFile('watermark_logo')) {
+            $file = $request->file('watermark_logo');
+            $filename = time() . '_watermark_' . $file->getClientOriginalName();
+            $path = $file->storeAs('logos', $filename, 'public');
+            Setting::updateOrCreate(['key' => 'watermark_logo'], ['value' => $path]);
         }
 
         if ($request->hasFile('map_marker_icon')) {

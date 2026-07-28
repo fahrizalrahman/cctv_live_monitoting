@@ -54,6 +54,34 @@
             @enderror
         </div>
 
+        <!-- Watermark Logo -->
+        <div class="pt-4 border-t border-slate-800/50">
+            <label for="watermark_logo" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Video Watermark Logo</label>
+            
+            @if(isset($watermarkLogo) && $watermarkLogo->value)
+                <div class="mb-4">
+                    <p class="text-xs text-slate-500 mb-2">Current Watermark:</p>
+                    <div class="p-4 bg-[#090d16] border border-slate-800 rounded-xl inline-block relative overflow-hidden">
+                        <!-- Add a video-like background to preview how it looks -->
+                        <div class="absolute inset-0 bg-slate-800/30"></div>
+                        <img src="{{ Storage::url($watermarkLogo->value) }}" alt="Watermark Logo" class="h-10 object-contain relative z-10 opacity-70" />
+                    </div>
+                </div>
+            @endif
+
+            <input type="file" id="watermark_logo" name="watermark_logo" accept="image/*"
+                   class="block w-full text-sm text-slate-400
+                          file:mr-4 file:py-2.5 file:px-4
+                          file:rounded-xl file:border-0
+                          file:text-xs file:font-semibold
+                          file:bg-sky-600/10 file:text-sky-400
+                          hover:file:bg-sky-600/20 transition-all cursor-pointer" />
+            <span class="block text-[10px] text-slate-500 mt-2">Semi-transparent PNG recommended. Will be displayed in the top right corner of live videos. Max size 2MB.</span>
+            @error('watermark_logo')
+                <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
+            @enderror
+        </div>
+
         <!-- Map Center Coordinates & Zoom -->
         <div class="pt-4 border-t border-slate-800/50">
             <h3 class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Map Center & Zoom</h3>
