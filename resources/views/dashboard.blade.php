@@ -268,7 +268,14 @@
             video.classList.add('hidden');
             iframe.classList.remove('hidden');
             iframe.src = streamUrl.replace('/api/stream.mp4', '/stream.html');
-            iframe.onload = function() { loadingAlert.classList.add('hidden'); };
+            iframe.onload = function() { 
+                loadingAlert.classList.add('hidden'); 
+                try {
+                    const style = document.createElement('style');
+                    style.innerHTML = '.info, #info { display: none !important; }';
+                    iframe.contentWindow.document.head.appendChild(style);
+                } catch(e) {}
+            };
         } else {
             // HLS / HTTP native stream
             iframe.classList.add('hidden');

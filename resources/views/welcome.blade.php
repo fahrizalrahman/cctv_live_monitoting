@@ -376,7 +376,14 @@
                     iframe.src = `{{ url('/') }}/go2rtc/stream.html?src=cctv_${cctv.id}`;
                     
                     // Hide loading when iframe loads (go2rtc player handles its own UI)
-                    iframe.onload = function() { loadingAlert.classList.add('hidden'); };
+                    iframe.onload = function() { 
+                        loadingAlert.classList.add('hidden'); 
+                        try {
+                            const style = document.createElement('style');
+                            style.innerHTML = '.info, #info { display: none !important; }';
+                            iframe.contentWindow.document.head.appendChild(style);
+                        } catch(e) {}
+                    };
                     
                 } else {
                     // Native Video playback for raw HTTP/HLS links
