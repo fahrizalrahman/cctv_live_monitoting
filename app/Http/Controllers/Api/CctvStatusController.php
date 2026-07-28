@@ -39,24 +39,20 @@ class CctvStatusController extends Controller
                 }
             }
 
-            // Wait for sockets to connect or fail with a total timeout of 1 second
+            // Wait for sockets to connect or fail with a total timeout of 3 seconds
             if (!empty($sockets)) {
                 $read = [];
                 $write = $sockets;
                 $except = $sockets;
                 
-                if (@stream_select($read, $write, $except, 1) > 0) {
+                if (@stream_select($read, $write, $except, 3) > 0) {
                     foreach ($write as $id => $socket) {
-                        $sockCheck = socket_import_stream($socket);
-                        if ($sockCheck) {
-                            $error = socket_get_option($sockCheck, SOL_SOCKET, SO_ERROR);
-                            if ($error === 0) {
-                                $results[$id] = 'online';
-                            } else {
-                                $results[$id] = 'offline';
-                            }
+                        // If stream_socket_get_name with true returns a peer name, it's connected
+                        $peer = @stream_socket_get_name($socket, true);
+                        if ($peer) {
+                            $results[$id] = 'online';
                         } else {
-                            $results[$id] = 'online'; // Fallback
+                            $results[$id] = 'offline';
                         }
                     }
                     foreach ($except as $id => $socket) {
