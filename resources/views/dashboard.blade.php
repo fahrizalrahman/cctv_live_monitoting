@@ -159,12 +159,11 @@
                     @endif
                     
                     <!-- Info overlay -->
-                    <div class="absolute top-4 left-4 bg-[#090d16]/80 backdrop-blur-md border border-slate-800 rounded-lg px-3 py-1.5 text-[10px] text-slate-300 font-mono pointer-events-none z-30">
-                        <div class="font-semibold text-slate-100 flex items-center gap-1.5">
+                    <div class="absolute bottom-4 left-4 z-30 pointer-events-none">
+                        <div class="flex items-center gap-2 font-mono text-xs font-semibold text-white drop-shadow-md bg-black/40 px-2 py-1 rounded-md border border-white/10 backdrop-blur-sm">
                             <span class="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                             <span id="label-name-{{ $i }}">Camera</span>
                         </div>
-                        <div class="text-[9px] text-slate-500 mt-0.5" id="label-details-{{ $i }}">ID: -</div>
                     </div>
 
                     <!-- Close/Unload button -->
@@ -275,7 +274,6 @@
 
         // Update labels
         labelName.textContent = cctvName;
-        labelDetails.textContent = `ID: ${String(cctvId).padStart(4, '0')}`;
 
         // Unload first if already playing something in this slot
         unloadSlot(slotId);
