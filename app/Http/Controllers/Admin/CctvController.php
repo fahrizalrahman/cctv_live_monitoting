@@ -23,7 +23,32 @@ class CctvController extends Controller
             $query->where('cctv_group_id', $request->cctv_group_id);
         }
         
-        $cctvs = $query->paginate(10)->withQueryString();
+        if ($request->filled('status')) {
+            $allCctvs = Cctv::all(['id', 'ip', 'port', 'status']);
+            $matchedIds = [];
+            
+            foreach ($allCctvs as $cctv) {
+                $isOnline = false;
+                if ($cctv->status === 'active') {
+                    $port = !empty($cctv->port) ? $cctv->port : 554;
+                    // Use a short timeout of 0.2s for faster backend filtering
+                    $fp = @fsockopen($cctv->ip, $port, $errno, $errstr, 0.2);
+                    if ($fp) {
+                        $isOnline = true;
+                        @fclose($fp);
+                    }
+                }
+                
+                if ($request->status === 'online' && $isOnline) {
+                    $matchedIds[] = $cctv->id;
+                } elseif ($request->status === 'offline' && !$isOnline) {
+                    $matchedIds[] = $cctv->id;
+                }
+            }
+            $query->whereIn('id', $matchedIds);
+        }
+        
+        $cctvs = $query->latest()->paginate(10)->withQueryString();
         $groups = CctvGroup::orderBy('name')->get();
         
         return view('admin.cctvs.index', compact('cctvs', 'groups'));
