@@ -82,18 +82,11 @@
                                 {{ $cctv->stream_url }}
                             </div>
                         </td>
-                        <td class="py-4 px-4">
-                            @if($cctv->status === 'active')
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                    <span class="h-1.5 w-1.5 bg-emerald-400 rounded-full"></span>
-                                    <span>Active</span>
-                                </span>
-                            @else
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                                    <span class="h-1.5 w-1.5 bg-rose-500 rounded-full"></span>
-                                    <span>Inactive</span>
-                                </span>
-                            @endif
+                        <td class="py-4 px-4 text-center">
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800/50 text-slate-400 cctv-status" data-id="{{ $cctv->id }}">
+                                <i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>
+                                <span class="text-xs font-medium">Checking</span>
+                            </div>
                         </td>
                         <td class="py-4 px-4 text-right">
                             <div class="flex items-center justify-end gap-2">
@@ -131,4 +124,35 @@
         </div>
     @endif
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            const response = await fetch('/api/cctvs/status');
+            const statuses = await response.json();
+            
+            document.querySelectorAll('.cctv-status').forEach(el => {
+                const id = el.getAttribute('data-id');
+                const isOnline = statuses[id] === 'online';
+                
+                if (isOnline) {
+                    el.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 cctv-status';
+                    el.innerHTML = `
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                        <span class="text-xs font-medium">Online</span>
+                    `;
+                } else {
+                    el.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-rose-500/20 bg-rose-500/10 text-rose-400 cctv-status';
+                    el.innerHTML = `
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                        <span class="text-xs font-medium">Offline</span>
+                    `;
+                }
+            });
+            // Re-initialize lucide icons if there were any changes (not needed here since we replaced html entirely without lucide icons)
+        } catch (e) {
+            console.error("Failed to load real-time status", e);
+        }
+    });
+</script>
 @endsection

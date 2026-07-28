@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [MapController::class, 'index'])->name('map');
 
+// API endpoint for real-time status checking
+Route::get('/api/cctvs/status', [\App\Http\Controllers\Api\CctvStatusController::class, 'index'])->name('api.cctvs.status');
+
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');

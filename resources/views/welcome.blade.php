@@ -141,7 +141,7 @@
             <!-- List Count -->
             <div class="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase mb-3 px-1">
                 <span>CCTV Terdaftar</span>
-                <span id="active-count" class="text-indigo-400">{{ count($cctvs) }} Online</span>
+                <span id="active-count" class="text-slate-400">Checking...</span>
             </div>
 
             <!-- CCTV List Scrollable -->
@@ -157,14 +157,9 @@
                             <span class="block text-xs font-bold text-slate-300 group-hover:text-slate-100 truncate transition-colors">{{ $cctv->name }}</span>
                             <span class="block text-[9px] text-slate-500 font-mono mt-0.5 truncate">IP: {{ $cctv->ip }}</span>
                         </div>
-                        <div class="shrink-0 flex items-center gap-2">
-                            @if($cctv->status === 'active')
-                                <span class="text-[10px] text-emerald-400 font-medium">Online</span>
-                                <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/50"></span>
-                            @else
-                                <span class="text-[10px] text-slate-500 font-medium">Offline</span>
-                                <span class="h-2 w-2 rounded-full bg-rose-500"></span>
-                            @endif
+                        <div class="shrink-0 flex items-center gap-2" id="cctv-status-{{ $cctv->id }}">
+                            <span class="text-[10px] text-slate-400 font-medium">Checking...</span>
+                            <i data-lucide="loader-2" class="w-3 h-3 text-slate-500 animate-spin"></i>
                         </div>
                     </button>
                 @empty
@@ -251,9 +246,17 @@
                     const lng = parseFloat(cctv.longitude);
                     
                     if (!isNaN(lat) && !isNaN(lng)) {
-                        // Custom Marker design
-                        const statusColor = cctv.status === 'active' ? '#10b981' : '#ef4444';
-                        const ringColor = cctv.status === 'active' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.2)';
+                        const status = cctv.realTimeStatus || 'checking';
+                        let statusColor = '#94a3b8'; // Slate 400
+                        let ringColor = 'rgba(148, 163, 184, 0.2)';
+                        
+                        if (status === 'active') {
+                            statusColor = '#10b981'; // Emerald 500
+                            ringColor = 'rgba(16, 185, 129, 0.4)';
+                        } else if (status === 'inactive') {
+                            statusColor = '#ef4444'; // Rose 500
+                            ringColor = 'rgba(239, 68, 68, 0.2)';
+                        }
                         
                         let markerHtml = '';
                         const customMarkerUrl = {!! json_encode($mapMarkerUrl) !!};
@@ -261,14 +264,14 @@
                         if (customMarkerUrl) {
                             markerHtml = `
                                 <div style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px;">
-                                    <div style="position: absolute; width: 48px; height: 48px; border-radius: 50%; background: ${ringColor}; border: 2px solid ${statusColor}; animation: ping 1.8s infinite; opacity: 0.8;"></div>
+                                    <div style="position: absolute; width: 48px; height: 48px; border-radius: 50%; background: ${ringColor}; border: 2px solid ${statusColor}; animation: ${status === 'active' ? 'ping 1.8s infinite' : 'none'}; opacity: 0.8;"></div>
                                     <img src="${customMarkerUrl}" style="position: relative; width: 36px; height: 36px; border-radius: 50%; border: 2px solid #090d16; box-shadow: 0 0 8px ${statusColor}; object-fit: cover; background: white;" />
                                 </div>
                             `;
                         } else {
                             markerHtml = `
                                 <div style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
-                                    <div style="position: absolute; width: 20px; height: 20px; border-radius: 50%; background: ${ringColor}; border: 1.5px solid ${statusColor}; animation: ping 1.8s infinite; opacity: 0.8;"></div>
+                                    <div style="position: absolute; width: 20px; height: 20px; border-radius: 50%; background: ${ringColor}; border: 1.5px solid ${statusColor}; animation: ${status === 'active' ? 'ping 1.8s infinite' : 'none'}; opacity: 0.8;"></div>
                                     <div style="position: relative; width: 10px; height: 10px; border-radius: 50%; background: ${statusColor}; border: 1.5px solid #090d16; box-shadow: 0 0 6px ${statusColor};"></div>
                                 </div>
                             `;
@@ -280,15 +283,16 @@
                             iconSize: customMarkerUrl ? [48, 48] : [24, 24],
                             iconAnchor: customMarkerUrl ? [24, 24] : [12, 12]
                         });
-
-                        const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(map);
                         
-                        // Marker Click Event
-                        marker.on('click', () => {
-                            showCctvInModal(cctv);
-                        });
-
-                        markers[cctv.id] = marker;
+                        if (markers[cctv.id]) {
+                            markers[cctv.id].setIcon(markerIcon);
+                        } else {
+                            const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(map);
+                            marker.on('click', () => {
+                                showCctvInModal(cctv);
+                            });
+                            markers[cctv.id] = marker;
+                        }
                     }
                 });
 
@@ -435,7 +439,7 @@
                     if (match) {
                         if (listItem) listItem.classList.remove('hidden');
                         if (marker) marker.addTo(map);
-                        activeCount++;
+                        if (cctv.realTimeStatus === 'active') activeCount++;
                     } else {
                         if (listItem) listItem.classList.add('hidden');
                         if (marker) map.removeLayer(marker);
@@ -483,7 +487,86 @@
             document.getElementsByTagName('head')[0].appendChild(style);
 
             // Initialize Map on load
-            window.onload = initMap;
+            window.onload = () => {
+                initMap();
+                fetchRealTimeStatus();
+            };
+
+            // Fetch Real-time CCTV status
+            async function fetchRealTimeStatus() {
+                try {
+                    const response = await fetch('/api/cctvs/status');
+                    const statuses = await response.json();
+                    
+                    cctvs.forEach(cctv => {
+                        const statusContainer = document.getElementById(`cctv-status-${cctv.id}`);
+                        const isOnline = statuses[cctv.id] === 'online';
+                        
+                        cctv.realTimeStatus = isOnline ? 'active' : 'inactive';
+                        
+                        if (statusContainer) {
+                            if (isOnline) {
+                                statusContainer.innerHTML = `
+                                    <span class="text-[10px] text-emerald-400 font-medium">Online</span>
+                                    <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/50"></span>
+                                `;
+                            } else {
+                                statusContainer.innerHTML = `
+                                    <span class="text-[10px] text-slate-500 font-medium">Offline</span>
+                                    <span class="h-2 w-2 rounded-full bg-rose-500"></span>
+                                `;
+                            }
+                        }
+                    });
+                    
+                    // Re-render markers to update colors
+                    cctvs.forEach(cctv => {
+                        const lat = parseFloat(cctv.latitude);
+                        const lng = parseFloat(cctv.longitude);
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            const status = cctv.realTimeStatus;
+                            let statusColor = status === 'active' ? '#10b981' : '#ef4444';
+                            let ringColor = status === 'active' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.2)';
+                            
+                            let markerHtml = '';
+                            const customMarkerUrl = {!! json_encode($mapMarkerUrl) !!};
+                            
+                            if (customMarkerUrl) {
+                                markerHtml = `
+                                    <div style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px;">
+                                        <div style="position: absolute; width: 48px; height: 48px; border-radius: 50%; background: ${ringColor}; border: 2px solid ${statusColor}; animation: ${status === 'active' ? 'ping 1.8s infinite' : 'none'}; opacity: 0.8;"></div>
+                                        <img src="${customMarkerUrl}" style="position: relative; width: 36px; height: 36px; border-radius: 50%; border: 2px solid #090d16; box-shadow: 0 0 8px ${statusColor}; object-fit: cover; background: white;" />
+                                    </div>
+                                `;
+                            } else {
+                                markerHtml = `
+                                    <div style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
+                                        <div style="position: absolute; width: 20px; height: 20px; border-radius: 50%; background: ${ringColor}; border: 1.5px solid ${statusColor}; animation: ${status === 'active' ? 'ping 1.8s infinite' : 'none'}; opacity: 0.8;"></div>
+                                        <div style="position: relative; width: 10px; height: 10px; border-radius: 50%; background: ${statusColor}; border: 1.5px solid #090d16; box-shadow: 0 0 6px ${statusColor};"></div>
+                                    </div>
+                                `;
+                            }
+    
+                            const markerIcon = L.divIcon({
+                                className: 'custom-marker',
+                                html: markerHtml,
+                                iconSize: customMarkerUrl ? [48, 48] : [24, 24],
+                                iconAnchor: customMarkerUrl ? [24, 24] : [12, 12]
+                            });
+                            
+                            if (markers[cctv.id]) {
+                                markers[cctv.id].setIcon(markerIcon);
+                            }
+                        }
+                    });
+                    
+                    // Trigger filterCctvs to update the count display correctly based on online status
+                    filterCctvs();
+                    
+                } catch (error) {
+                    console.error("Failed to fetch real-time status:", error);
+                }
+            }
         </script>
     </body>
 </html>
