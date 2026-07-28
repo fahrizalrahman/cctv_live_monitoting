@@ -192,10 +192,16 @@
             </div>
 
             <!-- Video Player Area -->
-            <div class="aspect-video bg-[#070b12] overflow-hidden flex items-center justify-center relative">
-                <video id="modal-video" class="w-full h-full object-cover" autoplay muted playsinline controls></video>
-                <iframe id="modal-video-frame" class="w-full h-full border-0 hidden" allow="fullscreen; autoplay"></iframe>
-                <div id="modal-player-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-[#070b12]/90 p-4 text-center z-10">
+            <div class="aspect-video bg-black overflow-hidden flex items-center justify-center relative">
+                <!-- Loading Indicator -->
+                <div id="modal-player-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-[#070b12]/90 z-10">
+                    <i data-lucide="loader-2" class="w-8 h-8 text-indigo-500 animate-spin mb-3"></i>
+                    <span class="block text-xs font-semibold text-slate-300">Menghubungkan ke CCTV...</span>
+                </div>
+                
+                <video id="modal-video" class="w-full h-full object-cover bg-black relative z-0" autoplay muted playsinline controls></video>
+                <iframe id="modal-video-frame" class="w-full h-full border-0 hidden relative z-0" allow="fullscreen; autoplay"></iframe>
+                <div id="modal-player-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-[#070b12]/90 p-4 text-center z-20">
                     <i data-lucide="video-off" class="w-8 h-8 text-rose-500 mb-2"></i>
                     <span class="block text-xs font-semibold text-slate-300">Gagal Memutar Live Stream</span>
                     <span class="block text-[10px] text-slate-500 mt-1">Harap periksa kecocokan link HLS/M3U8 atau konfigurasikan transcoder RTSP Anda.</span>
@@ -334,6 +340,7 @@
                 const video = document.getElementById('modal-video');
                 const iframe = document.getElementById('modal-video-frame');
                 const errorAlert = document.getElementById('modal-player-error');
+                const loadingAlert = document.getElementById('modal-player-loading');
                 
                 // Clear active streams first
                 if (currentHls) {
@@ -345,21 +352,23 @@
                 video.load();
                 iframe.removeAttribute('src');
                 errorAlert.classList.add('hidden');
+                loadingAlert.classList.remove('hidden');
+
+                // Add event listeners to hide loading when playing
+                video.onplaying = function() { loadingAlert.classList.add('hidden'); };
+                video.onloadeddata = function() { loadingAlert.classList.add('hidden'); };
 
                 if (cctv.stream_url && cctv.stream_url.toLowerCase().startsWith('rtsp://')) {
-                    // Use go2rtc MP4 stream (MSE) which relies purely on HTTP (no WebSockets needed)
-                    iframe.classList.add('hidden');
-                    video.classList.remove('hidden');
-                    video.src = `{{ url('/') }}/go2rtc/api/stream.mp4?src=cctv_${cctv.id}`;
+                    // Use go2rtc ultra-low latency WebRTC player
+                    video.classList.add('hidden');
+                    iframe.classList.remove('hidden');
                     
-                    video.addEventListener('loadedmetadata', function() {
-                        video.play().catch(e => console.log('Autoplay blocked:', e));
-                    });
+                    // We let go2rtc handle the stream using WebRTC automatically
+                    iframe.src = `{{ url('/') }}/go2rtc/stream.html?src=cctv_${cctv.id}`;
                     
-                    video.addEventListener('error', function() {
-                        // MEDIA_ERR_SRC_NOT_SUPPORTED usually means H.265 codec in Chrome
-                        errorAlert.classList.remove('hidden');
-                    });
+                    // Hide loading when iframe loads (go2rtc player handles its own UI)
+                    iframe.onload = function() { loadingAlert.classList.add('hidden'); };
+                    
                 } else {
                     // Native Video playback for raw HTTP/HLS links
                     iframe.classList.add('hidden');
@@ -383,6 +392,7 @@
                             video.play().catch(e => console.log('Autoplay blocked:', e));
                         });
                         video.addEventListener('error', function() {
+                            loadingAlert.classList.add('hidden');
                             errorAlert.classList.remove('hidden');
                         });
                     }

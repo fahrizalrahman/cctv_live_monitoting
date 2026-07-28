@@ -111,12 +111,21 @@
                     </select>
                 </div>
 
-                <!-- Video player area -->
-                <div id="player-container-{{ $i }}" class="hidden w-full h-full relative">
-                    <video id="video-{{ $i }}" class="w-full h-full object-cover" autoplay muted playsinline controls></video>
+                <!-- Player Container (hidden by default) -->
+                <div id="player-container-{{ $i }}" class="absolute inset-0 flex flex-col hidden z-20 bg-black">
+                    <!-- Loading Indicator -->
+                    <div id="player-loading-{{ $i }}" class="absolute inset-0 flex flex-col items-center justify-center bg-[#070b12]/90 z-20">
+                        <i data-lucide="loader-2" class="w-6 h-6 text-indigo-500 animate-spin mb-2"></i>
+                        <span class="block text-[10px] font-semibold text-slate-300">Menghubungkan...</span>
+                    </div>
+                    
+                    <div class="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
+                        <video id="video-{{ $i }}" class="w-full h-full object-cover relative z-10 hidden" autoplay muted playsinline></video>
+                        <iframe id="iframe-{{ $i }}" class="w-full h-full border-0 hidden relative z-10" allow="fullscreen; autoplay"></iframe>
+                    </div>                 
                     
                     <!-- Info overlay -->
-                    <div class="absolute top-4 left-4 bg-[#090d16]/80 backdrop-blur-md border border-slate-800 rounded-lg px-3 py-1.5 text-[10px] text-slate-300 font-mono pointer-events-none">
+                    <div class="absolute top-4 left-4 bg-[#090d16]/80 backdrop-blur-md border border-slate-800 rounded-lg px-3 py-1.5 text-[10px] text-slate-300 font-mono pointer-events-none z-30">
                         <div class="font-semibold text-slate-100 flex items-center gap-1.5">
                             <span class="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                             <span id="label-name-{{ $i }}">Camera</span>
@@ -225,8 +234,10 @@
 
         const playerContainer = document.getElementById(`player-container-${slotId}`);
         const video = document.getElementById(`video-${slotId}`);
+        const iframe = document.getElementById(`iframe-${slotId}`);
         const labelName = document.getElementById(`label-name-${slotId}`);
         const labelDetails = document.getElementById(`label-details-${slotId}`);
+        const loadingAlert = document.getElementById(`player-loading-${slotId}`);
 
         // Update labels
         labelName.textContent = cctvName;
@@ -238,14 +249,25 @@
         // Hide selector, show player
         selector.classList.add('hidden');
         playerContainer.classList.remove('hidden');
+        loadingAlert.classList.remove('hidden');
 
         // Play stream
         if (isMp4) {
-            video.src = streamUrl;
-            video.addEventListener('loadedmetadata', function() {
-                video.play().catch(e => console.log('Autoplay blocked:', e));
-            });
+            // Use WebRTC ultra-low latency iframe player
+            video.classList.add('hidden');
+            iframe.classList.remove('hidden');
+            iframe.src = streamUrl.replace('/api/stream.mp4', '/stream.html');
+            iframe.onload = function() { loadingAlert.classList.add('hidden'); };
         } else {
+            // HLS / HTTP native stream
+            iframe.classList.add('hidden');
+            video.classList.remove('hidden');
+            
+            // Hide loading when video starts playing
+            video.onplaying = function() { loadingAlert.classList.add('hidden'); };
+            video.onloadeddata = function() { loadingAlert.classList.add('hidden'); };
+            video.onerror = function() { loadingAlert.classList.add('hidden'); };
+
             if (Hls.isSupported()) {
                 const hls = new Hls();
                 hls.loadSource(streamUrl);
@@ -264,18 +286,21 @@
     }
 
     function unloadSlot(slotId) {
-        // Destroy Hls player instance
+        const video = document.getElementById(`video-${slotId}`);
+        const iframe = document.getElementById(`iframe-${slotId}`);
+        
         if (activePlayers[slotId]) {
             activePlayers[slotId].destroy();
             delete activePlayers[slotId];
         }
-
-        const video = document.getElementById(`video-${slotId}`);
+        
         if (video) {
             video.pause();
             video.removeAttribute('src');
             video.load();
         }
+        
+        iframe.removeAttribute('src');
 
         // Show selector, hide player container
         const selector = document.getElementById(`selector-${slotId}`);
