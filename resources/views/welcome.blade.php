@@ -96,7 +96,7 @@
         </div>
 
         <!-- Floating CCTV Directory Sidebar Panel on Right -->
-        <aside id="sidebar" class="mobile-hidden absolute top-4 right-4 bottom-4 w-[calc(100vw-2rem)] sm:w-72 bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 p-5 flex flex-col z-30 shadow-2xl rounded-3xl">
+        <aside id="sidebar" class="mobile-hidden absolute top-4 right-4 bottom-4 w-[calc(100vw-2rem)] sm:max-w-xs sm:w-[300px] bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 p-5 flex flex-col z-30 shadow-2xl rounded-3xl">
             <!-- Sidebar Header & Action -->
             <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-800/50">
                 <span class="text-sm font-bold text-slate-200">Daftar CCTV</span>
@@ -161,7 +161,7 @@
                             data-ip="{{ $cctv->ip }}"
                             data-group="{{ $cctv->cctv_group_id }}"
                             class="cctv-list-item w-full text-left bg-[#090d16]/40 hover:bg-slate-800/40 border border-slate-850 p-3 rounded-xl flex items-center justify-between gap-3 group transition-all">
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-1">
                             <span class="block text-[11px] font-bold text-slate-300 group-hover:text-slate-100 truncate transition-colors">{{ $cctv->name }}</span>
                         </div>
                         <div class="shrink-0 flex items-center gap-2" id="cctv-status-{{ $cctv->id }}">
