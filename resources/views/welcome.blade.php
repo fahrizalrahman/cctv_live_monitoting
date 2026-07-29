@@ -96,7 +96,7 @@
         </div>
 
         <!-- Floating CCTV Directory Sidebar Panel on Right -->
-        <aside id="sidebar" class="mobile-hidden absolute top-4 left-4 right-4 bottom-4 sm:left-auto sm:w-72 bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 p-5 flex flex-col z-30 shadow-2xl rounded-3xl">
+        <aside id="sidebar" class="mobile-hidden absolute top-4 right-4 bottom-4 w-[calc(100vw-2rem)] sm:w-72 bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 p-5 flex flex-col z-30 shadow-2xl rounded-3xl">
             <!-- Sidebar Header & Action -->
             <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-800/50">
                 <span class="text-sm font-bold text-slate-200">Daftar CCTV</span>
