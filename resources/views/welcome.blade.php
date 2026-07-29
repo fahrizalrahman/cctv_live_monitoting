@@ -96,7 +96,7 @@
         </div>
 
         <!-- Floating CCTV Directory Sidebar Panel on Right -->
-        <aside id="sidebar" class="mobile-hidden absolute top-4 right-4 bottom-4 w-[calc(100%-2rem)] sm:w-80 bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 p-5 flex flex-col z-30 shadow-2xl rounded-3xl">
+        <aside id="sidebar" class="mobile-hidden absolute top-4 left-4 right-4 bottom-4 sm:left-auto sm:w-72 bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 p-5 flex flex-col z-30 shadow-2xl rounded-3xl">
             <!-- Sidebar Header & Action -->
             <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-800/50">
                 <span class="text-sm font-bold text-slate-200">Daftar CCTV</span>
@@ -127,19 +127,19 @@
                            oninput="filterCctvs()" 
                            type="text" 
                            placeholder="Cari CCTV..." 
-                           class="block w-full pl-9 pr-4 py-2 bg-[#090d16]/90 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-xs" />
+                           class="block w-full pl-9 pr-4 py-2 bg-[#090d16]/90 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-[11px]" />
                 </div>
             </div>
 
             <div class="mb-5 flex gap-2">
-                <select id="group-filter" onchange="filterCctvs()" class="block w-full px-3 py-2 bg-[#090d16]/90 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-xs">
+                <select id="group-filter" onchange="filterCctvs()" class="block w-full px-3 py-2 bg-[#090d16]/90 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-[11px]">
                     <option value="">Semua Group</option>
                     @foreach($groups as $group)
                         <option value="{{ $group->id }}">{{ $group->name }}</option>
                     @endforeach
                 </select>
 
-                <select id="status-filter" onchange="filterCctvs()" class="block w-full px-3 py-2 bg-[#090d16]/90 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-xs">
+                <select id="status-filter" onchange="filterCctvs()" class="block w-full px-3 py-2 bg-[#090d16]/90 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-[11px]">
                     <option value="">Semua Status</option>
                     <option value="active">Online</option>
                     <option value="inactive">Offline</option>
@@ -162,7 +162,7 @@
                             data-group="{{ $cctv->cctv_group_id }}"
                             class="cctv-list-item w-full text-left bg-[#090d16]/40 hover:bg-slate-800/40 border border-slate-850 p-3 rounded-xl flex items-center justify-between gap-3 group transition-all">
                         <div class="min-w-0">
-                            <span class="block text-xs font-bold text-slate-300 group-hover:text-slate-100 truncate transition-colors">{{ $cctv->name }}</span>
+                            <span class="block text-[11px] font-bold text-slate-300 group-hover:text-slate-100 truncate transition-colors">{{ $cctv->name }}</span>
                         </div>
                         <div class="shrink-0 flex items-center gap-2" id="cctv-status-{{ $cctv->id }}">
                             <span class="text-[10px] text-slate-400 font-medium">Checking...</span>
