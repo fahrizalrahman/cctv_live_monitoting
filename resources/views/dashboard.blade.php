@@ -4,7 +4,6 @@
 
 @php
     $watermarkLogo = \App\Models\Setting::where('key', 'watermark_logo')->first();
-    $runningText = \App\Models\Setting::where('key', 'running_text')->first();
 @endphp
 
 @section('content')
@@ -151,13 +150,6 @@
                         <iframe id="iframe-{{ $i }}" class="w-full h-full border-0 hidden relative z-10" allow="fullscreen; autoplay"></iframe>
                     </div>
 
-                    <!-- Running Text Marquee (Below Video) -->
-                    @if($runningText && $runningText->value)
-                        <div class="w-full bg-[#131b2e] border-t border-slate-800 shrink-0">
-                            <marquee class="py-1.5 text-[10px] md:text-xs font-medium text-indigo-300 tracking-wide" scrollamount="4">{{ $runningText->value }}</marquee>
-                        </div>
-                    @endif
-                    
                     <!-- Info overlay -->
                     <div class="absolute bottom-4 left-4 z-30 pointer-events-none">
                         <div class="flex items-center gap-2 font-mono text-xs font-semibold text-white drop-shadow-md bg-black/40 px-2 py-1 rounded-md border border-white/10 backdrop-blur-sm">
