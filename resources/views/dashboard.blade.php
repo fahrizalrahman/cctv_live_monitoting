@@ -90,10 +90,10 @@
         </div>
 
         <!-- The Grid Container -->
-        <div id="cctv-grid" class="flex-1 overflow-hidden grid gap-1 md:gap-2 transition-all duration-300">
+        <div id="cctv-grid" class="flex-1 min-h-0 overflow-hidden grid gap-1 md:gap-2 transition-all duration-300">
             <!-- Render 144 slots but toggle visibility based on layout -->
             @for($i = 0; $i < 144; $i++)
-                <div id="slot-{{ $i }}" class="cctv-slot bg-[#070b12] border border-slate-800/80 rounded-lg md:rounded-2xl overflow-hidden h-full min-h-0 min-w-0 flex flex-col relative group transition-all hover:border-indigo-500/50">
+                <div id="slot-{{ $i }}" class="cctv-slot bg-[#070b12] border border-slate-800/80 rounded-lg md:rounded-2xl overflow-hidden min-h-0 min-w-0 flex flex-col relative group transition-all hover:border-indigo-500/50">
                     <!-- Dropdown Selector (if no stream) -->
                     <div id="selector-{{ $i }}" class="absolute inset-0 flex flex-col items-center justify-center p-1 md:p-2 bg-[#070b12] z-10 text-center">
                     <div class="p-1 md:p-1.5 bg-slate-800/40 rounded-full text-slate-500 mb-1 group-hover:text-indigo-400 group-hover:bg-indigo-600/10 transition-colors">
