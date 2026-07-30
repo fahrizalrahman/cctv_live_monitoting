@@ -131,7 +131,7 @@
                     </div>
 
                     <!-- Close/Unload button -->
-                    <button onclick="unloadSlot({{ $i }})" class="absolute bottom-1 right-1 md:bottom-2 md:right-2 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white border border-rose-500/30 p-1 rounded-md transition-all shadow-md z-30">
+                    <button onclick="unloadSlot({{ $i }})" class="absolute top-1 right-1 md:top-2 md:right-2 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white border border-rose-500/30 p-1 rounded-md transition-all shadow-md z-30">
                         <i data-lucide="x" class="w-3 h-3"></i>
                     </button>
                 </div>
