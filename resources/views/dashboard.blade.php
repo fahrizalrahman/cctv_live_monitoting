@@ -118,7 +118,7 @@
                     </div>
                     
                     <div class="flex-1 relative overflow-hidden bg-black flex items-center justify-center min-h-0 min-w-0">
-                        <video id="video-{{ $i }}" class="w-full h-full object-contain relative z-10 hidden" autoplay muted playsinline></video>
+                        <video id="video-{{ $i }}" class="w-full h-full object-fill relative z-10 hidden" autoplay muted playsinline></video>
                         <iframe id="iframe-{{ $i }}" class="w-full h-full border-0 hidden relative z-10" allow="fullscreen; autoplay"></iframe>
                     </div>
 
@@ -282,7 +282,7 @@
                 loadingAlert.classList.add('hidden'); 
                 try {
                     const style = document.createElement('style');
-                    style.innerHTML = '.info, #info { display: none !important; } video { object-fit: contain !important; width: 100% !important; height: 100% !important; } body { margin: 0; padding: 0; overflow: hidden; background: transparent; }';
+                    style.innerHTML = '.info, #info { display: none !important; } video { object-fit: fill !important; width: 100% !important; height: 100% !important; } body { margin: 0; padding: 0; overflow: hidden; background: transparent; }';
                     iframe.contentWindow.document.head.appendChild(style);
                 } catch(e) {}
             };
