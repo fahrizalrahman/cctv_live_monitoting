@@ -82,10 +82,6 @@
                 <i data-lucide="grid-2x2" class="w-3.5 h-3.5"></i>
                 <span>4x4 View</span>
             </button>
-            <button onclick="changeLayout(6)" id="btn-layout-6" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all whitespace-nowrap">
-                <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
-                <span>6x6 View</span>
-            </button>
         </div>
         </div>
 
@@ -176,7 +172,7 @@
         currentItemsPerView = itemsPerView;
         
         // Update active class on buttons
-        const layouts = [4, 6];
+        const layouts = [4];
         layouts.forEach(num => {
             const btn = document.getElementById(`btn-layout-${num}`);
             if (num === itemsPerView) {
