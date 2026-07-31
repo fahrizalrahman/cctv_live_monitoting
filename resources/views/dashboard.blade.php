@@ -78,9 +78,9 @@
 
         <!-- Layout Controls -->
         <div class="flex items-center bg-[#090d16] p-1 border border-slate-800 rounded-xl gap-1 shrink-0 overflow-x-auto">
-            <button onclick="changeLayout(4)" id="btn-layout-4" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition-all whitespace-nowrap">
-                <i data-lucide="grid-2x2" class="w-3.5 h-3.5"></i>
-                <span>4x4 View</span>
+            <button onclick="changeLayout(3)" id="btn-layout-3" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition-all whitespace-nowrap">
+                <i data-lucide="grid-3x3" class="w-3.5 h-3.5"></i>
+                <span>3x3 View</span>
             </button>
         </div>
         </div>
@@ -165,14 +165,14 @@
 
 @push('scripts')
 <script>
-    let currentItemsPerView = 4;
+    let currentItemsPerView = 3;
     let activePlayers = {}; // Keep references to active Hls instances to destroy them properly
 
     function changeLayout(itemsPerView) {
         currentItemsPerView = itemsPerView;
         
         // Update active class on buttons
-        const layouts = [4];
+        const layouts = [3];
         layouts.forEach(num => {
             const btn = document.getElementById(`btn-layout-${num}`);
             if (num === itemsPerView) {
@@ -209,14 +209,14 @@
 
     // Initialize default layout on load
     document.addEventListener('DOMContentLoaded', () => {
-        changeLayout(4);
+        changeLayout(3);
         
-        // Auto load first 16 CCTVs for the 4x4 grid
+        // Auto load first 9 CCTVs for the 3x3 grid
         const selects = document.querySelectorAll('.cctv-slot select');
         if (selects.length > 0) {
             const options = selects[0].options;
             let optIndex = 1; // start at 1 to skip the placeholder "-- Choose Camera --"
-            for (let i = 0; i < 16; i++) {
+            for (let i = 0; i < 9; i++) {
                 if (optIndex < options.length) {
                     const cctvId = options[optIndex].value;
                     if (cctvId) {
