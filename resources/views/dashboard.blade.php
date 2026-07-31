@@ -82,6 +82,17 @@
                 <i data-lucide="grid-3x3" class="w-3.5 h-3.5"></i>
                 <span>3x3 View</span>
             </button>
+            
+            <!-- Pagination Controls -->
+            <div class="h-4 w-px bg-slate-700 mx-1"></div>
+            
+            <button onclick="prevPage()" id="btn-prev" class="flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+            <span id="page-indicator" class="text-xs font-medium text-slate-300 px-2 whitespace-nowrap">Page 1 of 1</span>
+            <button onclick="nextPage()" id="btn-next" class="flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
         </div>
         </div>
 
@@ -167,18 +178,23 @@
 <script>
     let currentItemsPerView = 3;
     let activePlayers = {}; // Keep references to active Hls instances to destroy them properly
+    let currentPage = 0;
+    let allCctvs = [];
 
     function changeLayout(itemsPerView) {
         currentItemsPerView = itemsPerView;
+        currentPage = 0; // Reset page on layout change
         
         // Update active class on buttons
         const layouts = [3];
         layouts.forEach(num => {
             const btn = document.getElementById(`btn-layout-${num}`);
-            if (num === itemsPerView) {
-                btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition-all whitespace-nowrap';
-            } else {
-                btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all whitespace-nowrap';
+            if (btn) {
+                if (num === itemsPerView) {
+                    btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition-all whitespace-nowrap';
+                } else {
+                    btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all whitespace-nowrap';
+                }
             }
         });
 
@@ -200,8 +216,57 @@
                 unloadSlot(i);
             }
         }
+        
+        updatePagination();
     }
     
+    function updatePagination() {
+        const totalVisible = currentItemsPerView * currentItemsPerView;
+        const maxPage = Math.ceil(allCctvs.length / totalVisible) - 1;
+        
+        if (currentPage > maxPage && maxPage >= 0) currentPage = maxPage;
+        if (currentPage < 0) currentPage = 0;
+
+        const indicator = document.getElementById('page-indicator');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+
+        if (indicator) indicator.textContent = `Page ${currentPage + 1} of ${Math.max(1, maxPage + 1)}`;
+        if (btnPrev) btnPrev.disabled = currentPage === 0;
+        if (btnNext) btnNext.disabled = currentPage >= maxPage;
+
+        const startIndex = currentPage * totalVisible;
+        
+        for (let i = 0; i < totalVisible; i++) {
+            const cctvIndex = startIndex + i;
+            if (cctvIndex < allCctvs.length) {
+                loadCctvIntoSlot(i, allCctvs[cctvIndex]);
+            } else {
+                unloadSlot(i);
+            }
+        }
+        
+        if(window.lucide) {
+            window.lucide.createIcons();
+        }
+    }
+
+    function nextPage() {
+        const totalVisible = currentItemsPerView * currentItemsPerView;
+        const maxPage = Math.ceil(allCctvs.length / totalVisible) - 1;
+        if (currentPage < maxPage) {
+            currentPage++;
+            updatePagination();
+        }
+    }
+
+    function prevPage() {
+        if (currentPage > 0) {
+            currentPage--;
+            updatePagination();
+        }
+    }
+
     // Add window resize listener to update layout dynamically (not needed for strict grid, but kept for future use)
     window.addEventListener('resize', () => {
         // Grid naturally adapts to resize
@@ -209,23 +274,16 @@
 
     // Initialize default layout on load
     document.addEventListener('DOMContentLoaded', () => {
-        changeLayout(3);
-        
-        // Auto load first 9 CCTVs for the 3x3 grid
+        // Gather all CCTVs
         const selects = document.querySelectorAll('.cctv-slot select');
         if (selects.length > 0) {
             const options = selects[0].options;
-            let optIndex = 1; // start at 1 to skip the placeholder "-- Choose Camera --"
-            for (let i = 0; i < 9; i++) {
-                if (optIndex < options.length) {
-                    const cctvId = options[optIndex].value;
-                    if (cctvId) {
-                        loadCctvIntoSlot(i, cctvId);
-                    }
-                    optIndex++;
-                }
+            for (let i = 1; i < options.length; i++) { // Start at 1 to skip placeholder
+                allCctvs.push(options[i].value);
             }
         }
+
+        changeLayout(3);
         
         fetchDashboardStats();
     });
