@@ -179,7 +179,9 @@
     let currentItemsPerView = 3;
     let activePlayers = {}; // Keep references to active Hls instances to destroy them properly
     let currentPage = 0;
+    let masterCctvs = [];
     let allCctvs = [];
+    let initialLoadComplete = false;
 
     function changeLayout(itemsPerView) {
         currentItemsPerView = itemsPerView;
@@ -274,17 +276,16 @@
 
     // Initialize default layout on load
     document.addEventListener('DOMContentLoaded', () => {
-        // Gather all CCTVs
+        // Gather all CCTVs into master list
         const selects = document.querySelectorAll('.cctv-slot select');
         if (selects.length > 0) {
             const options = selects[0].options;
             for (let i = 1; i < options.length; i++) { // Start at 1 to skip placeholder
-                allCctvs.push(options[i].value);
+                masterCctvs.push(options[i].value);
             }
         }
 
-        changeLayout(3);
-        
+        // Layout initialization is now handled after the first fetchDashboardStats
         fetchDashboardStats();
     });
 
@@ -416,6 +417,24 @@
                 } else {
                     offlineCount++;
                 }
+            }
+            
+            // Update the filtered list of CCTVs to only include online ones
+            allCctvs = masterCctvs.filter(id => statuses[id] === 'online');
+            
+            if (!initialLoadComplete) {
+                initialLoadComplete = true;
+                changeLayout(3);
+            } else {
+                // Update pagination controls silently without reloading the active players
+                const totalVisible = currentItemsPerView * currentItemsPerView;
+                const maxPage = Math.ceil(allCctvs.length / totalVisible) - 1;
+                
+                const indicator = document.getElementById('page-indicator');
+                const btnNext = document.getElementById('btn-next');
+                
+                if (indicator) indicator.textContent = `Page ${currentPage + 1} of ${Math.max(1, maxPage + 1)}`;
+                if (btnNext) btnNext.disabled = currentPage >= maxPage;
             }
             
             const activeEl = document.getElementById('active-streams-count');
