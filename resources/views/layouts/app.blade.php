@@ -126,13 +126,14 @@
             $appLogo = \App\Models\Setting::where('key', 'app_logo')->first();
             $appName = \App\Models\Setting::where('key', 'app_name')->first();
             $appNameDisplay = $appName && $appName->value ? $appName->value : 'CCTV MONITOR';
+            $isViewer = Auth::user() && Auth::user()->hasRole('viewer');
         @endphp
         <div class="flex min-h-screen relative">
             <!-- Sidebar Backdrop (Mobile) -->
             <div id="sidebar-backdrop" class="fixed inset-0 z-40 backdrop-blur-sm" style="display: none; background-color: rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.3s;"></div>
 
             <!-- Sidebar -->
-            <aside id="sidebar" class="sidebar-responsive inset-y-0 left-0 z-50 w-64 bg-[#0d1321] border-r border-slate-800 flex flex-col justify-between shrink-0 transition-transform duration-300">
+            <aside id="sidebar" class="sidebar-responsive inset-y-0 left-0 z-50 w-64 bg-[#0d1321] border-r border-slate-800 flex flex-col justify-between shrink-0 transition-transform duration-300 {{ $isViewer ? 'sidebar-collapsed' : '' }}">
                 <div>
                     <!-- Logo / Brand -->
                     <div class="sidebar-header h-16 flex items-center justify-between px-6 border-b border-slate-800">
