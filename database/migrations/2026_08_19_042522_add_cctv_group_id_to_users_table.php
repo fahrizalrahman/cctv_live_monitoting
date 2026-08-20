@@ -11,10 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('cctvs', function (Blueprint $table) {
-            if (!Schema::hasColumn('cctvs', 'is_visible')) {
-                $table->boolean('is_visible')->default(true)->after('cctv_group_id');
-            }
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreignId('cctv_group_id')->nullable()->constrained()->nullOnDelete();
         });
     }
 
@@ -23,8 +21,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('cctvs', function (Blueprint $table) {
-            $table->dropColumn('is_visible');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['cctv_group_id']);
+            $table->dropColumn('cctv_group_id');
         });
     }
 };

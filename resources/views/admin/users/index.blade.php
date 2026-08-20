@@ -9,6 +9,12 @@
             <h2 class="text-xl font-bold text-slate-200">System Users</h2>
             <p class="text-xs text-slate-500 mt-1">Manage user roles and system privileges to authorize platform operators.</p>
         </div>
+        <div>
+            <a href="{{ route('admin.users.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/20 transition-all">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                Create User
+            </a>
+        </div>
     </div>
 
     <!-- Users Table -->
@@ -19,6 +25,7 @@
                     <th class="py-4 px-4">Name</th>
                     <th class="py-4 px-4">Email Address</th>
                     <th class="py-4 px-4">Role</th>
+                    <th class="py-4 px-4">CCTV Groups</th>
                     <th class="py-4 px-4">Registered Date</th>
                     <th class="py-4 px-4 text-right">Actions</th>
                 </tr>
@@ -42,7 +49,22 @@
                                 {{ $role }}
                             </span>
                         </td>
-                        <td class="py-4 px-4 text-xs text-slate-500">{{ $user->created_at->format('M d, Y H:i') }}</td>
+                        <td class="py-4 px-4">
+                            @if($role === 'viewer' && $user->cctvGroups->count() > 0)
+                                <div class="flex flex-wrap gap-1.5 max-w-[200px]">
+                                    @foreach($user->cctvGroups as $group)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800/60 text-slate-300 border border-slate-700/50 whitespace-nowrap">
+                                            {{ $group->name }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @elseif($role === 'viewer')
+                                <span class="text-xs text-slate-500 italic">All Groups</span>
+                            @else
+                                <span class="text-xs text-slate-600">-</span>
+                            @endif
+                        </td>
+                        <td class="py-4 px-4 text-xs text-slate-500 whitespace-nowrap">{{ $user->created_at->format('M d, Y H:i') }}</td>
                         <td class="py-4 px-4 text-right">
                             <div class="flex items-center justify-end gap-2">
                                 <a href="{{ route('admin.users.edit', $user->id) }}" class="p-1.5 bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600 hover:text-white rounded-lg border border-indigo-500/20 transition-all" title="Edit Role">

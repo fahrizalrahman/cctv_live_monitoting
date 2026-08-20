@@ -9,16 +9,26 @@
 @section('content')
 <!-- Dashboard Wrapper (Flex Col Full Height) -->
 <div class="flex flex-col flex-1 h-full min-h-0">
+    @php
+        $isViewer = auth()->user() ? auth()->user()->hasRole('viewer') : false;
+    @endphp
+
     <!-- Dashboard Welcome Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 shrink-0">
         <div>
             <h2 class="text-xl font-bold text-slate-200">System Dashboard</h2>
             <p class="text-xs text-slate-500 mt-1">Real-time camera metrics, active system users, and stream status logs.</p>
         </div>
+        <div>
+            <button onclick="toggleDashboardStats()" class="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 hover:bg-slate-700 border border-slate-700/50 rounded-lg text-xs font-medium text-slate-300 transition-all">
+                <span id="stats-toggle-text">{{ $isViewer ? 'Show Stats' : 'Hide Stats' }}</span>
+                <i data-lucide="{{ $isViewer ? 'chevron-down' : 'chevron-up' }}" id="stats-toggle-icon" class="w-3.5 h-3.5"></i>
+            </button>
+        </div>
     </div>
 
     <!-- Stats Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 shrink-0">
+    <div id="stats-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 shrink-0 {{ $isViewer ? 'hidden' : '' }}">
     <!-- Card 1 -->
     <div class="bg-[#0d1321]/60 border border-slate-800 p-6 rounded-2xl flex items-center justify-between shadow-lg hover:border-slate-700 transition-all">
         <div>
@@ -470,6 +480,27 @@
         } finally {
             // Poll again after 5 seconds
             setTimeout(fetchDashboardStats, 5000);
+        }
+    }
+
+    function toggleDashboardStats() {
+        const container = document.getElementById('stats-container');
+        const textEl = document.getElementById('stats-toggle-text');
+        const iconEl = document.getElementById('stats-toggle-icon');
+        
+        if (container.classList.contains('hidden')) {
+            container.classList.remove('hidden');
+            textEl.textContent = 'Hide Stats';
+            iconEl.setAttribute('data-lucide', 'chevron-up');
+        } else {
+            container.classList.add('hidden');
+            textEl.textContent = 'Show Stats';
+            iconEl.setAttribute('data-lucide', 'chevron-down');
+        }
+        
+        // Re-render lucide icons for the newly updated data-lucide attribute
+        if (window.lucide) {
+            lucide.createIcons();
         }
     }
 </script>

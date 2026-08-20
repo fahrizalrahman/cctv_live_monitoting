@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('page_title', 'Edit User')
+@section('page_title', 'Create User')
 
 @section('content')
 <div class="bg-[#0d1321]/30 border border-slate-800 rounded-3xl p-6 shadow-xl w-full">
@@ -9,19 +9,18 @@
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
         </a>
         <div>
-            <h2 class="text-xl font-bold text-slate-200">Modify User & Role</h2>
-            <p class="text-xs text-slate-500 mt-1">Edit profile details and assign system authorization roles.</p>
+            <h2 class="text-xl font-bold text-slate-200">Create New User</h2>
+            <p class="text-xs text-slate-500 mt-1">Add a new user and assign system authorization roles.</p>
         </div>
     </div>
 
-    <form method="POST" action="{{ route('admin.users.update', $user->id) }}" class="space-y-6">
+    <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-6">
         @csrf
-        @method('PUT')
 
         <!-- User Name -->
         <div>
             <label for="name" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
-            <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" required
+            <input type="text" id="name" name="name" value="{{ old('name') }}" required
                    class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
             @error('name')
                 <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
@@ -31,11 +30,28 @@
         <!-- Email Address -->
         <div>
             <label for="email" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
-            <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" required
+            <input type="email" id="email" name="email" value="{{ old('email') }}" required
                    class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
             @error('email')
                 <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
             @enderror
+        </div>
+
+        <!-- Password -->
+        <div>
+            <label for="password" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Password</label>
+            <input type="password" id="password" name="password" required
+                   class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
+            @error('password')
+                <p class="mt-1.5 text-xs text-rose-500 font-medium">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <!-- Confirm Password -->
+        <div>
+            <label for="password_confirmation" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Confirm Password</label>
+            <input type="password" id="password_confirmation" name="password_confirmation" required
+                   class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm" />
         </div>
 
         <!-- Role Assignment -->
@@ -43,8 +59,9 @@
             <label for="role" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Assign System Role</label>
             <select id="role" name="role" required onchange="toggleCctvGroup()"
                     class="block w-full px-4 py-2.5 bg-[#0a0e1a]/80 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-sm">
+                <option value="">-- Select Role --</option>
                 @foreach($roles as $role)
-                    <option value="{{ $role->name }}" {{ old('role', $user->roles->first()?->name) === $role->name ? 'selected' : '' }}>
+                    <option value="{{ $role->name }}" {{ old('role') === $role->name ? 'selected' : '' }}>
                         {{ ucfirst($role->name) }}
                     </option>
                 @endforeach
@@ -60,7 +77,7 @@
             <select id="cctv_group_ids" name="cctv_group_ids[]" multiple
                     class="block w-full">
                 @foreach($cctvGroups as $group)
-                    <option value="{{ $group->id }}" {{ in_array($group->id, (array) old('cctv_group_ids', $user->cctvGroups->pluck('id')->toArray())) ? 'selected' : '' }}>
+                    <option value="{{ $group->id }}" {{ in_array($group->id, (array) old('cctv_group_ids', [])) ? 'selected' : '' }}>
                         {{ $group->name }}
                     </option>
                 @endforeach
@@ -75,7 +92,7 @@
                 Cancel
             </a>
             <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/20 transition-all">
-                Update User Profile
+                Create User
             </button>
         </div>
     </form>

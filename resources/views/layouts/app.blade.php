@@ -57,6 +57,9 @@
                 .mobile-btn-only {
                     display: block !important;
                 }
+                #desktop-sidebar-btn, #desktop-sidebar-expand-btn {
+                    display: none !important;
+                }
                 .sidebar-responsive {
                     position: fixed !important;
                     transform: translateX(-100%);
@@ -71,9 +74,48 @@
                 .mobile-header-only, .mobile-btn-only, #sidebar-backdrop {
                     display: none !important;
                 }
+                #desktop-sidebar-btn {
+                    display: block !important;
+                }
+                #desktop-sidebar-expand-btn {
+                    display: none !important;
+                }
                 .sidebar-responsive {
                     position: static !important;
                     transform: none !important;
+                    transition: width 0.3s ease;
+                }
+                .sidebar-collapsed {
+                    width: 72px !important;
+                }
+                .sidebar-collapsed #desktop-sidebar-btn {
+                    display: none !important;
+                }
+                .sidebar-collapsed #desktop-sidebar-expand-btn {
+                    display: block !important;
+                }
+                .sidebar-collapsed .sidebar-text,
+                .sidebar-collapsed .sidebar-chevron {
+                    display: none !important;
+                    opacity: 0;
+                }
+                .sidebar-collapsed .sidebar-header {
+                    padding-left: 0 !important;
+                    padding-right: 0 !important;
+                    justify-content: center !important;
+                }
+                .sidebar-collapsed .sidebar-item {
+                    justify-content: center !important;
+                    padding-left: 0 !important;
+                    padding-right: 0 !important;
+                }
+                .sidebar-collapsed .sidebar-profile {
+                    flex-direction: column !important;
+                    gap: 0.5rem !important;
+                    padding: 0.5rem !important;
+                }
+                .sidebar-collapsed .sidebar-profile-avatar {
+                    margin: 0 auto !important;
                 }
             }
         </style>
@@ -93,20 +135,23 @@
             <aside id="sidebar" class="sidebar-responsive inset-y-0 left-0 z-50 w-64 bg-[#0d1321] border-r border-slate-800 flex flex-col justify-between shrink-0 transition-transform duration-300">
                 <div>
                     <!-- Logo / Brand -->
-                    <div class="h-16 flex items-center justify-between px-6 border-b border-slate-800">
+                    <div class="sidebar-header h-16 flex items-center justify-between px-6 border-b border-slate-800">
                         <div class="flex items-center gap-3">
                             @if($appLogo && $appLogo->value)
-                                <img src="{{ asset(Storage::url($appLogo->value)) }}" alt="Logo" class="h-8 object-contain" />
+                                <img src="{{ asset(Storage::url($appLogo->value)) }}" alt="Logo" class="h-8 w-8 object-contain" />
                             @else
-                                <div class="bg-indigo-600 p-2 rounded-lg text-white shadow-lg shadow-indigo-500/30">
+                                <div class="bg-indigo-600 p-2 rounded-lg text-white shadow-lg shadow-indigo-500/30 flex-shrink-0">
                                     <i data-lucide="video" class="w-6 h-6"></i>
                                 </div>
                             @endif
-                            <div>
+                            <div class="sidebar-text">
                                 <span class="font-bold text-lg tracking-wide bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">{{ $appNameDisplay }}</span>
                                 <span class="block text-[10px] text-slate-500 font-medium tracking-widest uppercase">Live Streaming</span>
                             </div>
                         </div>
+                        <button id="desktop-sidebar-btn" class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all sidebar-text" title="Toggle Sidebar">
+                            <i data-lucide="panel-left-close" class="w-5 h-5"></i>
+                        </button>
                         <button id="close-sidebar-btn" class="mobile-btn-only p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
                             <i data-lucide="x" class="w-5 h-5"></i>
                         </button>
@@ -114,10 +159,14 @@
 
                     <!-- Navigation Links -->
                     <nav class="p-4 pt-6 pb-6 space-y-2">
+                        <button id="desktop-sidebar-expand-btn" class="p-2 mx-auto mb-4 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all" title="Expand Sidebar">
+                            <i data-lucide="panel-left-open" class="w-5 h-5"></i>
+                        </button>
+
                         <!-- Direct Link to Public Map -->
-                        <a href="{{ route('map') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300">
-                            <i data-lucide="map" class="w-4 h-4"></i>
-                            <span>Public Map View</span>
+                        <a href="{{ route('map') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300">
+                            <i data-lucide="map" class="w-4 h-4 flex-shrink-0"></i>
+                            <span class="sidebar-text">Public Map View</span>
                         </a>
 
                         <div class="h-px bg-slate-800 my-4"></div>
@@ -136,18 +185,18 @@
                                         $isParentActive = ($menu->url !== '/' && $menu->url !== '#' && Request::is(ltrim($menu->url, '/').'*')) || $hasActiveChild;
                                     @endphp
                                     <div x-data="{ open: {{ $isParentActive ? 'true' : 'false' }} }">
-                                        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all {{ $isParentActive ? 'bg-indigo-600/20 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' }}">
+                                        <button @click="open = !open" class="sidebar-item w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all {{ $isParentActive ? 'bg-indigo-600/20 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' }}">
                                             <div class="flex items-center gap-3">
                                                 @if($menu->icon)
-                                                    <i data-lucide="{{ $menu->icon }}" class="w-4 h-4"></i>
+                                                    <i data-lucide="{{ $menu->icon }}" class="w-4 h-4 flex-shrink-0"></i>
                                                 @else
-                                                    <i data-lucide="circle" class="w-3 h-3"></i>
+                                                    <i data-lucide="circle" class="w-3 h-3 flex-shrink-0"></i>
                                                 @endif
-                                                <span>{{ $menu->name }}</span>
+                                                <span class="sidebar-text">{{ $menu->name }}</span>
                                             </div>
-                                            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                                            <i data-lucide="chevron-down" class="sidebar-chevron w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
                                         </button>
-                                        <div x-show="open" style="display: none;" class="mt-1 space-y-1 bg-[#0a0e1a]/50 rounded-lg p-1.5 border border-slate-800/50">
+                                        <div x-show="open" style="display: none;" class="sidebar-text mt-1 space-y-1 bg-[#0a0e1a]/50 rounded-lg p-1.5 border border-slate-800/50">
                                             @foreach($menu->children as $child)
                                                 @php
                                                     $canAccessChild = true;
@@ -156,8 +205,8 @@
                                                     }
                                                 @endphp
                                                 @if($canAccessChild)
-                                                    <a href="{{ url($child->url) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all {{ Request::is(ltrim($child->url, '/').'*') && ltrim($child->url, '/') !== '' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800' }}">
-                                                        <i data-lucide="minus" class="w-3 h-3"></i>
+                                                    <a href="{{ url($child->url) }}" class="flex items-center gap-2 px-3 py-2 rounded-md text-[13px] font-medium transition-all {{ Request::is(ltrim($child->url, '/').'*') && ltrim($child->url, '/') !== '' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-500 hover:bg-slate-800 hover:text-slate-300' }}">
+                                                        <i data-lucide="minus" class="w-3 h-3 text-slate-600"></i>
                                                         <span>{{ $child->name }}</span>
                                                     </a>
                                                 @endif
@@ -165,16 +214,16 @@
                                         </div>
                                     </div>
                                 @else
-                                    <div>
+                                    <div class="space-y-1">
                                         <!-- Main Menu Item -->
-                                        <a href="{{ url($menu->url) }}" class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all {{ Request::is(ltrim($menu->url, '/').'*') && ltrim($menu->url, '/') !== '' ? 'bg-indigo-600/20 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' }}">
+                                        <a href="{{ url($menu->url) }}" class="sidebar-item flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all {{ Request::is(ltrim($menu->url, '/').'*') && ltrim($menu->url, '/') !== '' ? 'bg-indigo-600/20 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' }}">
                                             <div class="flex items-center gap-3">
                                                 @if($menu->icon)
-                                                    <i data-lucide="{{ $menu->icon }}" class="w-4 h-4"></i>
+                                                    <i data-lucide="{{ $menu->icon }}" class="w-4 h-4 flex-shrink-0"></i>
                                                 @else
-                                                    <i data-lucide="circle" class="w-3 h-3"></i>
+                                                    <i data-lucide="circle" class="w-3 h-3 flex-shrink-0"></i>
                                                 @endif
-                                                <span>{{ $menu->name }}</span>
+                                                <span class="sidebar-text">{{ $menu->name }}</span>
                                             </div>
                                         </a>
                                     </div>
@@ -186,11 +235,11 @@
 
                 <!-- User Profile & Logout at Bottom -->
                 <div class="p-4 border-t border-slate-800 bg-[#0a0e1a]/50">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 text-indigo-400 font-bold uppercase">
+                    <div class="sidebar-profile flex items-center gap-3 mb-3">
+                        <div class="sidebar-profile-avatar w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 text-indigo-400 font-bold uppercase shrink-0">
                             {{ substr(Auth::user()->name, 0, 2) }}
                         </div>
-                        <div class="overflow-hidden">
+                        <div class="sidebar-text overflow-hidden">
                             <span class="block text-sm font-semibold truncate text-slate-200">{{ Auth::user()->name }}</span>
                             <span class="block text-[10px] text-slate-500 font-medium truncate capitalize">
                                 {{ Auth::user()->roles->first()?->name ?? 'User' }}
@@ -202,8 +251,8 @@
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold bg-rose-600/10 text-rose-400 hover:bg-rose-600 hover:text-white border border-rose-500/20 transition-all">
-                            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-                            <span>Sign Out</span>
+                            <i data-lucide="log-out" class="w-4 h-4 shrink-0"></i>
+                            <span class="sidebar-text">Sign Out</span>
                         </button>
                     </form>
                 </div>
@@ -313,6 +362,17 @@
             if(closeBtn) {
                 closeBtn.addEventListener('click', closeSidebar);
             }
+            
+            // Desktop Sidebar Collapse Logic
+            const desktopSidebarBtn = document.getElementById('desktop-sidebar-btn');
+            const desktopSidebarExpandBtn = document.getElementById('desktop-sidebar-expand-btn');
+            
+            function toggleDesktopSidebar() {
+                sidebar.classList.toggle('sidebar-collapsed');
+            }
+            
+            if(desktopSidebarBtn) desktopSidebarBtn.addEventListener('click', toggleDesktopSidebar);
+            if(desktopSidebarExpandBtn) desktopSidebarExpandBtn.addEventListener('click', toggleDesktopSidebar);
             
             // Re-initialize icons just in case newly added elements need it
             lucide.createIcons();
