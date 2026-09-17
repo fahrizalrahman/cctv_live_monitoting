@@ -9,12 +9,16 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\CctvGroupController;
+use App\Http\Controllers\Api\MobileApiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [MapController::class, 'index'])->name('map');
 
 // API endpoint for real-time status checking
 Route::get('/api/cctvs/status', [\App\Http\Controllers\Api\CctvStatusController::class, 'index'])->name('api.cctvs.status');
+
+// API routes are handled via routes/api.php with Laravel Sanctum
+
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
