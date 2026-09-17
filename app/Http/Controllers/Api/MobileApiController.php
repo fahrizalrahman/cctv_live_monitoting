@@ -109,15 +109,28 @@ class MobileApiController extends Controller
         $query = Cctv::with('group')->where('is_visible', 1);
 
         if ($user) {
-            $isAdmin = $user->hasRole('admin') || 
-                       $user->hasRole('super-admin') || 
-                       str_contains(strtolower($user->email), 'admin');
+            $isAdmin = false;
+
+            if (method_exists($user, 'hasRole')) {
+                $isAdmin = $user->hasRole('admin') || $user->hasRole('super-admin');
+            }
+            if ($user->id === 1 || $user->email === 'admin@cctv.local' || $user->email === 'admin@cctv.com') {
+                $isAdmin = true;
+            }
 
             // If regular user/viewer, filter CCTV list to ONLY match assigned CCTV groups
             if (!$isAdmin) {
                 $assignedGroupIds = $user->cctvGroups()->pluck('cctv_groups.id')->toArray();
-                $query->whereIn('cctv_group_id', $assignedGroupIds);
+                if (!empty($assignedGroupIds)) {
+                    $query->whereIn('cctv_group_id', $assignedGroupIds);
+                } else {
+                    // Viewer has no assigned groups -> return 0 cameras
+                    $query->whereRaw('1 = 0');
+                }
             }
+        } else {
+            // Unauthenticated request -> return 0 cameras
+            $query->whereRaw('1 = 0');
         }
 
         $cctvs = $query->get();
