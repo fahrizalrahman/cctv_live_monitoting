@@ -200,10 +200,24 @@ class MobileApiController extends Controller
                 'status' => $cctv->status === 'active' ? 'Online' : 'Offline',
                 'ip' => $cctv->ip,
                 'port' => $cctv->port,
+                'channel_num' => $cctv->channel,
                 'stream_url' => $cctv->stream_url,
                 'latitude' => $cctv->latitude,
                 'longitude' => $cctv->longitude,
             ],
+        ]);
+    }
+
+    /**
+     * Get Application Settings for Mobile App
+     */
+    public function getSettings()
+    {
+        $settings = \App\Models\Setting::all()->pluck('value', 'key')->toArray();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $settings
         ]);
     }
 
