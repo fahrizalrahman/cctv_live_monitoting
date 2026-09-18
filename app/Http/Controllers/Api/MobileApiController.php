@@ -129,6 +129,7 @@ class MobileApiController extends Controller
                 'id' => (string) $item->id,
                 'name' => $item->name,
                 'location' => $item->group ? $item->group->name : ('Lokasi (' . $item->latitude . ', ' . $item->longitude . ')'),
+                'group_name' => $item->group ? $item->group->name : 'Lainnya',
                 'status' => $isOnline ? 'Online' : 'Offline',
                 'bitrate' => $isOnline ? (rand(75, 115) . ' KB/s') : '0 KB/s',
                 'resolution' => 'HD 1080P',
@@ -140,9 +141,9 @@ class MobileApiController extends Controller
                 'stream_url' => $item->stream_url,
                 'latitude' => $item->latitude,
                 'longitude' => $item->longitude,
-                'thumbnail' => $index % 2 === 0
+                'thumbnail' => $item->thumbnail ?: ($index % 2 === 0
                     ? 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80'
-                    : 'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?auto=format&fit=crop&w=800&q=80',
+                    : 'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?auto=format&fit=crop&w=800&q=80'),
             ];
         });
 
