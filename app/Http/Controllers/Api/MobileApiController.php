@@ -147,12 +147,27 @@ class MobileApiController extends Controller
             ];
         });
 
-        $userGroups = $user ? $user->cctvGroups->pluck('name')->toArray() : [];
+        $userGroups = [];
+        if ($user) {
+            $isAdmin = $user->hasRole('admin') || 
+                       $user->hasRole('super-admin') || 
+                       str_contains(strtolower($user->email), 'admin');
+
+            if ($isAdmin) {
+                $userGroups = \App\Models\CctvGroup::pluck('name')->toArray();
+            } else {
+                $userGroups = $user->cctvGroups->pluck('name')->toArray();
+            }
+        }
+
+        if (empty($userGroups)) {
+            $userGroups = \App\Models\CctvGroup::pluck('name')->toArray();
+        }
 
         return response()->json([
             'status' => 'success',
             'user_name' => $user ? $user->name : 'Viewer',
-            'assigned_groups' => empty($userGroups) ? ['Semua Group (Admin)'] : $userGroups,
+            'assigned_groups' => array_values(array_unique($userGroups)),
             'total' => count($formatted),
             'data' => $formatted,
         ]);

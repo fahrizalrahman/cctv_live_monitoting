@@ -23,6 +23,7 @@ Route::prefix('v1')->group(function () {
         });
         Route::get('/cctvs', [MobileApiController::class, 'getCctvList']);
         Route::get('/cctvs/{id}', [MobileApiController::class, 'getCctvDetail']);
+        Route::get('/settings', [MobileApiController::class, 'getSettings']);
         Route::get('/events', [MobileApiController::class, 'getEvents']);
         Route::post('/cctvs/{id}/ptz', [MobileApiController::class, 'controlPtz']);
         Route::post('/logout', [MobileApiController::class, 'logout']);
