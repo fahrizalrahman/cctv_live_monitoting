@@ -28,8 +28,8 @@ class MobileApiController extends Controller
 
         // Standard user login in database
         if ($user && (Hash::check($password, $user->password) || $password === 'password' || $password === 'admin')) {
-            $user->tokens()->delete();
-            $token = $user->createToken('cctv-mobile-app')->plainTextToken;
+            // Jangan hapus token lama agar bisa multi-device login tanpa membuat perangkat lain ter-logout / data kosong
+            $token = $user->createToken($request->input('device_name', 'cctv-mobile-app'))->plainTextToken;
 
             $groupNames = $user->cctvGroups->pluck('name')->toArray();
 
@@ -59,8 +59,8 @@ class MobileApiController extends Controller
                 ]
             );
 
-            $adminUser->tokens()->delete();
-            $token = $adminUser->createToken('cctv-mobile-app')->plainTextToken;
+            // Jangan hapus token lama agar bisa multi-device login
+            $token = $adminUser->createToken($request->input('device_name', 'cctv-mobile-app'))->plainTextToken;
 
             return response()->json([
                 'status' => 'success',
