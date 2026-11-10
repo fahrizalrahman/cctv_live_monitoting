@@ -193,6 +193,8 @@ class CctvController extends Controller
                 }
 
                 if (str_starts_with(strtolower($rawUrl), 'rtsp://')) {
+                    // Encode spaces (e.g. password "Admin 123" -> "Admin%20123") so go2rtc URL parser doesn't fail
+                    $rawUrl = str_replace(' ', '%20', $rawUrl);
                     $escapedUrl = str_replace('"', '\"', $rawUrl);
                     $yamlContent .= "  cctv_{$cctv->id}: \"{$escapedUrl}\"\n";
                     $streamsMap["cctv_{$cctv->id}"] = $rawUrl;
