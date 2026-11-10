@@ -10,6 +10,8 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        \App\Http\Controllers\Admin\CctvController::ensureGo2RtcSynced();
+
         $user = auth()->user();
         $cctvQuery = Cctv::query();
 

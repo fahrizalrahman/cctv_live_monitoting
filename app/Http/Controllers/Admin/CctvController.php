@@ -159,26 +159,144 @@ class CctvController extends Controller
     }
 
     /**
-     * Synchronize CCTV streams from database to go2rtc config and restart the service.
+     * Synchronize CCTV streams from database to go2rtc config and ensure service is running.
      */
     protected function syncGo2Rtc()
     {
+        self::ensureGo2RtcSynced(true);
+    }
+
+    /**
+     * Ensure go2rtc.yaml contains all RTSP streams from database (native RTSP without broken ffmpeg wrapper)
+     * and update go2rtc live in memory via /api/config and /api/streams without killing the process.
+     */
+    public static function ensureGo2RtcSynced(bool $forceSync = false): void
+    {
         try {
-            $cctvs = Cctv::all();
-            
-            $yamlContent = "api:\n  origin: '*'\n\nffmpeg:\n  bin: /usr/local/bin/ffmpeg\n\nstreams:\n";
+            $cctvs = Cctv::orderBy('id')->get(['id', 'stream_url']);
+
+            $yamlContent = "api:\n  origin: '*'\n\nstreams:\n";
+            $streamsMap = [];
+
             foreach ($cctvs as $cctv) {
-                if (str_starts_with(strtolower($cctv->stream_url), 'rtsp://')) {
-                    // Prepend ffmpeg: and append #video=h264#audio=opus to transcode H.265 to H.264 automatically
-                    $yamlContent .= "  cctv_{$cctv->id}: \"ffmpeg:{$cctv->stream_url}#video=h264#audio=opus\"\n";
+                $rawUrl = trim($cctv->stream_url ?? '');
+                if ($rawUrl === '') {
+                    continue;
+                }
+
+                // Strip accidental ffmpeg: prefix or #video=... transcode flags if present
+                if (str_starts_with(strtolower($rawUrl), 'ffmpeg:')) {
+                    $rawUrl = substr($rawUrl, 7);
+                }
+                if (str_contains($rawUrl, '#video=')) {
+                    $rawUrl = explode('#video=', $rawUrl)[0];
+                }
+
+                if (str_starts_with(strtolower($rawUrl), 'rtsp://')) {
+                    $escapedUrl = str_replace('"', '\"', $rawUrl);
+                    $yamlContent .= "  cctv_{$cctv->id}: \"{$escapedUrl}\"\n";
+                    $streamsMap["cctv_{$cctv->id}"] = $rawUrl;
                 }
             }
-            
-            file_put_contents(base_path('go2rtc.yaml'), $yamlContent);
-            
-            Http::timeout(2)->post('http://127.0.0.1:1984/api/restart');
+
+            $yamlPath = base_path('go2rtc.yaml');
+            $currentYaml = file_exists($yamlPath) ? file_get_contents($yamlPath) : '';
+            $configChanged = ($currentYaml !== $yamlContent);
+
+            if ($configChanged) {
+                @file_put_contents($yamlPath, $yamlContent);
+            }
+
+            // Also sync to C:\go2rtc\go2rtc.yaml on Windows if that directory exists
+            if (PHP_OS_FAMILY === 'Windows' && is_dir('C:\\go2rtc')) {
+                $winYamlPath = 'C:\\go2rtc\\go2rtc.yaml';
+                $currentWinYaml = file_exists($winYamlPath) ? file_get_contents($winYamlPath) : '';
+                if ($currentWinYaml !== $yamlContent) {
+                    @file_put_contents($winYamlPath, $yamlContent);
+                    $configChanged = true;
+                }
+            }
+
+            $isRunning = self::isGo2RtcRunning();
+
+            if (!$isRunning) {
+                self::startGo2RtcProcess();
+                usleep(300000);
+                $isRunning = self::isGo2RtcRunning();
+                $forceSync = true;
+            }
+
+            if ($isRunning) {
+                // Check if running go2rtc config still has old 'ffmpeg:' or differs
+                if (!$configChanged && !$forceSync) {
+                    try {
+                        $remoteCfg = Http::timeout(1)->get('http://127.0.0.1:1984/api/config');
+                        if ($remoteCfg->successful() && trim($remoteCfg->body()) !== trim($yamlContent)) {
+                            $configChanged = true;
+                        }
+                    } catch (\Exception $e) {
+                    }
+                }
+
+                if ($configChanged || $forceSync) {
+                    // 1. Save config directly through go2rtc API (works regardless of file ownership/working dir)
+                    try {
+                        Http::timeout(2)
+                            ->withBody($yamlContent, 'application/yaml')
+                            ->post('http://127.0.0.1:1984/api/config');
+                    } catch (\Exception $e) {
+                    }
+
+                    // 2. Dynamically register/replace all streams in go2rtc memory via PUT /api/streams
+                    // This updates streams immediately WITHOUT killing/terminating the go2rtc process!
+                    foreach (array_chunk($streamsMap, 30, true) as $chunk) {
+                        try {
+                            Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($chunk) {
+                                foreach ($chunk as $name => $src) {
+                                    $url = 'http://127.0.0.1:1984/api/streams?name=' . urlencode($name) . '&src=' . urlencode($src);
+                                    $pool->timeout(2)->put($url);
+                                }
+                            });
+                        } catch (\Exception $e) {
+                        }
+                    }
+                }
+            }
         } catch (\Exception $e) {
-            // Swallow connection resets from go2rtc restarting itself
+            // Do not break page load if go2rtc sync fails
+        }
+    }
+
+    private static function isGo2RtcRunning(): bool
+    {
+        $fp = @fsockopen('127.0.0.1', 1984, $errno, $errstr, 0.3);
+        if ($fp) {
+            @fclose($fp);
+            return true;
+        }
+        return false;
+    }
+
+    private static function startGo2RtcProcess(): void
+    {
+        try {
+            if (PHP_OS_FAMILY === 'Windows') {
+                $bin = file_exists('C:\\go2rtc\\go2rtc.exe') ? 'C:\\go2rtc\\go2rtc.exe' : base_path('go2rtc.exe');
+                $cfg = file_exists('C:\\go2rtc\\go2rtc.yaml') ? 'C:\\go2rtc\\go2rtc.yaml' : base_path('go2rtc.yaml');
+                if (file_exists($bin)) {
+                    @pclose(@popen("start /B \"\" \"{$bin}\" -config \"{$cfg}\"", 'r'));
+                }
+            } else {
+                $bin = base_path('go2rtc');
+                $cfg = base_path('go2rtc.yaml');
+                $log = base_path('go2rtc.log');
+                if (file_exists($bin)) {
+                    @chmod($bin, 0755);
+                    @exec('nohup ' . escapeshellarg($bin) . ' -config ' . escapeshellarg($cfg) . ' >> ' . escapeshellarg($log) . ' 2>&1 &');
+                }
+            }
+        } catch (\Exception $e) {
+            // Ignore process spawn errors
         }
     }
 

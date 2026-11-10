@@ -343,10 +343,10 @@
 
         // Play stream
         if (isMp4) {
-            // Use WebRTC ultra-low latency iframe player
+            // Use MSE/WebRTC/MP4 ultra-low latency iframe player (supports both H.264 & H.265 natively)
             video.classList.add('hidden');
             iframe.classList.remove('hidden');
-            iframe.src = streamUrl.replace('/api/stream.mp4', '/stream.html');
+            iframe.src = `/go2rtc/stream.html?src=cctv_${cctvId}&mode=mse,webrtc,mp4,mjpeg`;
             iframe.onload = function() { 
                 loadingAlert.classList.add('hidden'); 
                 try {
