@@ -205,17 +205,19 @@ class CctvController extends Controller
                 if (str_starts_with(strtolower($rawUrl), 'rtsp://')) {
                     // Encode spaces (e.g. password "Admin 123" -> "Admin%20123") so RTSP URL parser doesn't fail
                     $rawUrl = str_replace(' ', '%20', $rawUrl);
+                    $nativeSource = "{$rawUrl}#media=video";
                     $ffmpegSource = "ffmpeg:{$rawUrl}#video=h264";
+                    $escapedNative = str_replace('"', '\"', $nativeSource);
                     $escapedFfmpeg = str_replace('"', '\"', $ffmpegSource);
 
                     if (str_contains(strtolower($rawUrl), '/unicast/')) {
-                        // Uniview NVR (/unicast/cX/sX/live) omits sprop-vps/sps/pps in SDP; force direct FFmpeg H.264
-                        $yamlContent .= "  cctv_{$cctv->id}: \"{$escapedFfmpeg}\"\n";
-                        $streamsMap["cctv_{$cctv->id}"] = [$ffmpegSource];
+                        // Uniview NVR (/unicast/cX/sX/live) is H.265; prioritize FFmpeg H.264 first, native video second
+                        $yamlContent .= "  cctv_{$cctv->id}:\n";
+                        $yamlContent .= "    - \"{$escapedFfmpeg}\"\n";
+                        $yamlContent .= "    - \"{$escapedNative}\"\n";
+                        $streamsMap["cctv_{$cctv->id}"] = [$ffmpegSource, $nativeSource];
                     } else {
                         // Native video-only RTSP first (0% CPU for H.264), direct FFmpeg H.264 second (for H.265 cameras)
-                        $nativeSource = "{$rawUrl}#media=video";
-                        $escapedNative = str_replace('"', '\"', $nativeSource);
                         $yamlContent .= "  cctv_{$cctv->id}:\n";
                         $yamlContent .= "    - \"{$escapedNative}\"\n";
                         $yamlContent .= "    - \"{$escapedFfmpeg}\"\n";
@@ -224,16 +226,16 @@ class CctvController extends Controller
                 }
             }
 
-            $yamlPath = base_path('go2rtc.yaml');
-            $hashPath = storage_path('framework/go2rtc_synced.hash');
+            $hashPath = sys_get_temp_dir() . '/cctv_go2rtc_synced_v5_' . md5(base_path()) . '.hash';
+            $runtimeYamlPath = sys_get_temp_dir() . '/cctv_go2rtc_runtime_' . md5(base_path()) . '.yaml';
             $newHash = md5($yamlContent);
             $lastHash = file_exists($hashPath) ? trim((string) @file_get_contents($hashPath)) : '';
-            $currentYaml = file_exists($yamlPath) ? (string) @file_get_contents($yamlPath) : '';
 
-            $configChanged = ($newHash !== $lastHash) || ($currentYaml !== '' && $currentYaml !== $yamlContent);
+            $configChanged = $forceSync || ($newHash !== $lastHash);
 
-            if ($currentYaml !== $yamlContent) {
-                @file_put_contents($yamlPath, $yamlContent);
+            if ($configChanged) {
+                @file_put_contents($runtimeYamlPath, $yamlContent);
+                @file_put_contents(base_path('go2rtc.yaml'), $yamlContent);
             }
 
             // Also sync to C:\go2rtc\go2rtc.yaml on Windows if that directory exists
@@ -249,45 +251,49 @@ class CctvController extends Controller
             $isRunning = self::isGo2RtcRunning();
 
             if (!$isRunning) {
+                @file_put_contents($runtimeYamlPath, $yamlContent);
                 self::startGo2RtcProcess();
-                usleep(350000);
-                $isRunning = self::isGo2RtcRunning();
-                $forceSync = true;
-            }
-
-            if ($isRunning) {
-                if (!$configChanged && !$forceSync) {
-                    try {
-                        $remoteCfg = Http::timeout(1)->get('http://127.0.0.1:1984/api/config');
-                        if ($remoteCfg->successful() && trim($remoteCfg->body()) !== trim($yamlContent)) {
-                            $configChanged = true;
-                        }
-                    } catch (\Exception $e) {
+                for ($i = 0; $i < 10; $i++) {
+                    usleep(100000);
+                    if (self::isGo2RtcRunning()) {
+                        $isRunning = true;
+                        break;
                     }
                 }
+                $configChanged = true;
+            }
 
-                if ($configChanged || $forceSync) {
-                    // 1. Save config directly through go2rtc API (writes using go2rtc process permissions)
-                    try {
-                        Http::timeout(2)
-                            ->withBody($yamlContent, 'application/yaml')
-                            ->post('http://127.0.0.1:1984/api/config');
-                    } catch (\Exception $e) {
+            if ($isRunning && $configChanged) {
+                // 1. Save config through go2rtc API if supported
+                try {
+                    Http::timeout(2)
+                        ->withBody($yamlContent, 'application/yaml')
+                        ->post('http://127.0.0.1:1984/api/config');
+                } catch (\Exception $e) {
+                }
+
+                // 2. Restart go2rtc once so it reloads ffmpeg.bin and ffmpeg.rtsp from go2rtc.yaml
+                try {
+                    Http::timeout(1)->post('http://127.0.0.1:1984/api/restart');
+                } catch (\Exception $e) {
+                }
+
+                // Wait until go2rtc finishes restarting (or spawn it if it exited)
+                usleep(250000);
+                $restarted = false;
+                for ($i = 0; $i < 12; $i++) {
+                    if (self::isGo2RtcRunning()) {
+                        $restarted = true;
+                        break;
                     }
-
-                    // 2. Restart go2rtc in-place (syscall.Exec on Linux) so it reloads ffmpeg.bin and ffmpeg.rtsp
-                    try {
-                        Http::timeout(1)->post('http://127.0.0.1:1984/api/restart');
-                    } catch (\Exception $e) {
-                    }
-
-                    usleep(350000);
-                    if (!self::isGo2RtcRunning()) {
+                    if ($i === 4) {
                         self::startGo2RtcProcess();
-                        usleep(350000);
                     }
+                    usleep(100000);
+                }
 
-                    // 3. Dynamically replace all streams in go2rtc memory via PUT /api/streams
+                if ($restarted) {
+                    // 3. Dynamically register all streams in go2rtc memory via PUT /api/streams
                     foreach (array_chunk($streamsMap, 30, true) as $chunk) {
                         try {
                             Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($chunk) {
@@ -332,8 +338,9 @@ class CctvController extends Controller
                 }
             } else {
                 $bin = base_path('go2rtc');
-                $cfg = base_path('go2rtc.yaml');
-                $log = base_path('go2rtc.log');
+                $runtimeCfg = sys_get_temp_dir() . '/cctv_go2rtc_runtime_' . md5(base_path()) . '.yaml';
+                $cfg = file_exists($runtimeCfg) ? $runtimeCfg : base_path('go2rtc.yaml');
+                $log = sys_get_temp_dir() . '/cctv_go2rtc_' . md5(base_path()) . '.log';
                 if (file_exists($bin)) {
                     @chmod($bin, 0755);
                     @exec('nohup ' . escapeshellarg($bin) . ' -config ' . escapeshellarg($cfg) . ' >> ' . escapeshellarg($log) . ' 2>&1 &');

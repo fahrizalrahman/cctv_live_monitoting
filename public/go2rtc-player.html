@@ -60,7 +60,8 @@
             'avc1.64002A',
             'avc1.640033',
         ];
-        player.mode = params.get('mode') || 'mse,webrtc,mp4,mjpeg';
+        player.RECONNECT_TIMEOUT = 2000;
+        player.mode = params.get('mode') || 'mse,mp4,mjpeg';
         player.background = true;
         player.visibilityCheck = false;
         player.src = new URL('./go2rtc/api/ws?src=' + encodeURIComponent(src), location.href);
