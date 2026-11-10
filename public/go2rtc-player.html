@@ -50,18 +50,18 @@
 
     if (src) {
         const player = document.createElement('video-rtc');
-        // Request ONLY H.264 video (no audio track, no un-muxable raw H.265 SDP).
+        // Request ONLY video (H.264 + H.265) and NO audio tracks.
         // 1. Eliminates the Chrome audio-only black screen / white pill bar.
-        // 2. Forces go2rtc to use native RTSP on H.264 cameras (0% CPU) and
-        //    automatically select the FFmpeg H.264 source on H.265 / Uniview cameras.
+        // 2. Plays both H.264 and H.265 cameras natively via MSE/WebRTC (0% CPU).
         player.media = 'video';
         player.CODECS = [
-            'avc1.640029',
-            'avc1.64002A',
-            'avc1.640033',
+            'avc1.640029',      // H.264 high 4.1
+            'avc1.64002A',      // H.264 high 4.2
+            'avc1.640033',      // H.264 high 5.1
+            'hvc1.1.6.L153.B0', // H.265 main 5.1
         ];
         player.RECONNECT_TIMEOUT = 2000;
-        player.mode = params.get('mode') || 'mse,mp4,mjpeg';
+        player.mode = params.get('mode') || 'mse,webrtc,mp4,mjpeg';
         player.background = true;
         player.visibilityCheck = false;
         player.src = new URL('./go2rtc/api/ws?src=' + encodeURIComponent(src), location.href);
