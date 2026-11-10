@@ -196,7 +196,11 @@ class CctvController extends Controller
                     // Encode spaces (e.g. password "Admin 123" -> "Admin%20123") so go2rtc URL parser doesn't fail
                     $rawUrl = str_replace(' ', '%20', $rawUrl);
                     $escapedUrl = str_replace('"', '\"', $rawUrl);
-                    $yamlContent .= "  cctv_{$cctv->id}: \"{$escapedUrl}\"\n";
+                    // Primary source: Native RTSP (0% CPU for H.264 / H.265 MSE)
+                    // Secondary source: FFmpeg H.264 fallback if camera is H.265 and browser only supports H.264
+                    $yamlContent .= "  cctv_{$cctv->id}:\n";
+                    $yamlContent .= "    - \"{$escapedUrl}\"\n";
+                    $yamlContent .= "    - \"ffmpeg:cctv_{$cctv->id}#video=h264\"\n";
                     $streamsMap["cctv_{$cctv->id}"] = $rawUrl;
                 }
             }
@@ -250,12 +254,15 @@ class CctvController extends Controller
                     }
 
                     // 2. Dynamically register/replace all streams in go2rtc memory via PUT /api/streams
-                    // This updates streams immediately WITHOUT killing/terminating the go2rtc process!
+                    // Includes both native RTSP source and ffmpeg H.264 fallback for H.265 cameras
                     foreach (array_chunk($streamsMap, 30, true) as $chunk) {
                         try {
                             Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($chunk) {
                                 foreach ($chunk as $name => $src) {
-                                    $url = 'http://127.0.0.1:1984/api/streams?name=' . urlencode($name) . '&src=' . urlencode($src);
+                                    $fallback = "ffmpeg:{$name}#video=h264";
+                                    $url = 'http://127.0.0.1:1984/api/streams?name=' . urlencode($name)
+                                         . '&src=' . urlencode($src)
+                                         . '&src=' . urlencode($fallback);
                                     $pool->timeout(2)->put($url);
                                 }
                             });

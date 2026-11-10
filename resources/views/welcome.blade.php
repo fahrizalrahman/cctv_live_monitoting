@@ -394,8 +394,8 @@
                     video.classList.add('hidden');
                     iframe.classList.remove('hidden');
                     
-                    // We let go2rtc handle the stream using MSE/WebRTC/MP4 (supports both H.264 & H.265 natively without ffmpeg)
-                    iframe.src = `{{ url('/') }}/go2rtc/stream.html?src=cctv_${cctv.id}&mode=mse,webrtc,mp4,mjpeg`;
+                    // Use MSE/MP4/MJPEG (avoids WebRTC audio-only black screen bug on H.265 cameras)
+                    iframe.src = `{{ url('/') }}/go2rtc/stream.html?src=cctv_${cctv.id}&mode=mse,mp4,mjpeg`;
                     
                     // Hide loading when iframe loads (go2rtc player handles its own UI)
                     iframe.onload = function() { 
