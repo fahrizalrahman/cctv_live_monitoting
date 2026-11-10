@@ -343,10 +343,10 @@
 
         // Play stream
         if (isMp4) {
-            // Use MSE/MP4/MJPEG iframe player (avoids WebRTC audio-only black screen bug on H.265 cameras)
+            // Use custom H.264 video-only go2rtc player (prevents audio-only black screen on H.265 / Uniview cameras)
             video.classList.add('hidden');
             iframe.classList.remove('hidden');
-            iframe.src = `/go2rtc/stream.html?src=cctv_${cctvId}&mode=mse,mp4,mjpeg`;
+            iframe.src = `/go2rtc-player.html?src=cctv_${cctvId}`;
             iframe.onload = function() { 
                 loadingAlert.classList.add('hidden'); 
                 try {

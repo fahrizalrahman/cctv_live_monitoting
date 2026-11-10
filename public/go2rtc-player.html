@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCTV Live Player</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+        }
+        video-rtc {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: fill !important;
+            background: #000;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<script type="module">
+    import {VideoRTC} from './go2rtc/video-rtc.js';
+
+    class CctvPlayer extends VideoRTC {
+        oninit() {
+            super.oninit();
+            if (this.video) {
+                this.video.style.width = '100%';
+                this.video.style.height = '100%';
+                this.video.style.objectFit = 'fill';
+            }
+        }
+    }
+
+    customElements.define('video-rtc', CctvPlayer);
+
+    const params = new URLSearchParams(location.search);
+    const src = params.get('src');
+
+    if (src) {
+        const player = document.createElement('video-rtc');
+        // Request ONLY H.264 video (no audio track, no un-muxable raw H.265 SDP).
+        // 1. Eliminates the Chrome audio-only black screen / white pill bar.
+        // 2. Forces go2rtc to use native RTSP on H.264 cameras (0% CPU) and
+        //    automatically select the FFmpeg H.264 source on H.265 / Uniview cameras.
+        player.media = 'video';
+        player.CODECS = [
+            'avc1.640029',
+            'avc1.64002A',
+            'avc1.640033',
+        ];
+        player.mode = params.get('mode') || 'mse,webrtc,mp4,mjpeg';
+        player.background = true;
+        player.visibilityCheck = false;
+        player.src = new URL('./go2rtc/api/ws?src=' + encodeURIComponent(src), location.href);
+        document.body.appendChild(player);
+    }
+</script>
+</body>
+</html>

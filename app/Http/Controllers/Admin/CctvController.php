@@ -167,7 +167,7 @@ class CctvController extends Controller
     }
 
     /**
-     * Ensure go2rtc.yaml contains all RTSP streams from database (native RTSP without broken ffmpeg wrapper)
+     * Ensure go2rtc.yaml contains all RTSP streams from database transcoded to H.264 video
      * and update go2rtc live in memory via /api/config and /api/streams without killing the process.
      */
     public static function ensureGo2RtcSynced(bool $forceSync = false): void
@@ -175,7 +175,17 @@ class CctvController extends Controller
         try {
             $cctvs = Cctv::orderBy('id')->get(['id', 'stream_url']);
 
-            $yamlContent = "api:\n  origin: '*'\n\nstreams:\n";
+            // Auto-detect actual ffmpeg binary path on Linux (/usr/bin/ffmpeg) or macOS
+            $ffmpegBin = 'ffmpeg';
+            foreach (['/usr/bin/ffmpeg', '/usr/local/bin/ffmpeg', '/opt/homebrew/bin/ffmpeg', '/bin/ffmpeg'] as $candidate) {
+                if (@is_executable($candidate) || @file_exists($candidate)) {
+                    $ffmpegBin = $candidate;
+                    break;
+                }
+            }
+
+            $yamlRtspTemplate = '-fflags nobuffer -flags low_delay -rtsp_transport tcp -i {input}';
+            $yamlContent = "api:\n  origin: '*'\n\nffmpeg:\n  bin: {$ffmpegBin}\n  rtsp: \"{$yamlRtspTemplate}\"\n\nstreams:\n";
             $streamsMap = [];
 
             foreach ($cctvs as $cctv) {
@@ -184,39 +194,52 @@ class CctvController extends Controller
                     continue;
                 }
 
-                // Strip accidental ffmpeg: prefix or #video=... transcode flags if present
+                // Strip accidental ffmpeg: prefix or #video=... / #media=... flags if present
                 if (str_starts_with(strtolower($rawUrl), 'ffmpeg:')) {
                     $rawUrl = substr($rawUrl, 7);
                 }
-                if (str_contains($rawUrl, '#video=')) {
-                    $rawUrl = explode('#video=', $rawUrl)[0];
+                if (str_contains($rawUrl, '#')) {
+                    $rawUrl = explode('#', $rawUrl)[0];
                 }
 
                 if (str_starts_with(strtolower($rawUrl), 'rtsp://')) {
-                    // Encode spaces (e.g. password "Admin 123" -> "Admin%20123") so go2rtc URL parser doesn't fail
+                    // Encode spaces (e.g. password "Admin 123" -> "Admin%20123") so RTSP URL parser doesn't fail
                     $rawUrl = str_replace(' ', '%20', $rawUrl);
-                    $escapedUrl = str_replace('"', '\"', $rawUrl);
-                    // Primary source: Native RTSP (0% CPU for H.264 / H.265 MSE)
-                    // Secondary source: FFmpeg H.264 fallback if camera is H.265 and browser only supports H.264
-                    $yamlContent .= "  cctv_{$cctv->id}:\n";
-                    $yamlContent .= "    - \"{$escapedUrl}\"\n";
-                    $yamlContent .= "    - \"ffmpeg:cctv_{$cctv->id}#video=h264\"\n";
-                    $streamsMap["cctv_{$cctv->id}"] = $rawUrl;
+                    $ffmpegSource = "ffmpeg:{$rawUrl}#video=h264";
+                    $escapedFfmpeg = str_replace('"', '\"', $ffmpegSource);
+
+                    if (str_contains(strtolower($rawUrl), '/unicast/')) {
+                        // Uniview NVR (/unicast/cX/sX/live) omits sprop-vps/sps/pps in SDP; force direct FFmpeg H.264
+                        $yamlContent .= "  cctv_{$cctv->id}: \"{$escapedFfmpeg}\"\n";
+                        $streamsMap["cctv_{$cctv->id}"] = [$ffmpegSource];
+                    } else {
+                        // Native video-only RTSP first (0% CPU for H.264), direct FFmpeg H.264 second (for H.265 cameras)
+                        $nativeSource = "{$rawUrl}#media=video";
+                        $escapedNative = str_replace('"', '\"', $nativeSource);
+                        $yamlContent .= "  cctv_{$cctv->id}:\n";
+                        $yamlContent .= "    - \"{$escapedNative}\"\n";
+                        $yamlContent .= "    - \"{$escapedFfmpeg}\"\n";
+                        $streamsMap["cctv_{$cctv->id}"] = [$nativeSource, $ffmpegSource];
+                    }
                 }
             }
 
             $yamlPath = base_path('go2rtc.yaml');
-            $currentYaml = file_exists($yamlPath) ? file_get_contents($yamlPath) : '';
-            $configChanged = ($currentYaml !== $yamlContent);
+            $hashPath = storage_path('framework/go2rtc_synced.hash');
+            $newHash = md5($yamlContent);
+            $lastHash = file_exists($hashPath) ? trim((string) @file_get_contents($hashPath)) : '';
+            $currentYaml = file_exists($yamlPath) ? (string) @file_get_contents($yamlPath) : '';
 
-            if ($configChanged) {
+            $configChanged = ($newHash !== $lastHash) || ($currentYaml !== '' && $currentYaml !== $yamlContent);
+
+            if ($currentYaml !== $yamlContent) {
                 @file_put_contents($yamlPath, $yamlContent);
             }
 
             // Also sync to C:\go2rtc\go2rtc.yaml on Windows if that directory exists
             if (PHP_OS_FAMILY === 'Windows' && is_dir('C:\\go2rtc')) {
                 $winYamlPath = 'C:\\go2rtc\\go2rtc.yaml';
-                $currentWinYaml = file_exists($winYamlPath) ? file_get_contents($winYamlPath) : '';
+                $currentWinYaml = file_exists($winYamlPath) ? (string) @file_get_contents($winYamlPath) : '';
                 if ($currentWinYaml !== $yamlContent) {
                     @file_put_contents($winYamlPath, $yamlContent);
                     $configChanged = true;
@@ -227,13 +250,12 @@ class CctvController extends Controller
 
             if (!$isRunning) {
                 self::startGo2RtcProcess();
-                usleep(300000);
+                usleep(350000);
                 $isRunning = self::isGo2RtcRunning();
                 $forceSync = true;
             }
 
             if ($isRunning) {
-                // Check if running go2rtc config still has old 'ffmpeg:' or differs
                 if (!$configChanged && !$forceSync) {
                     try {
                         $remoteCfg = Http::timeout(1)->get('http://127.0.0.1:1984/api/config');
@@ -245,7 +267,7 @@ class CctvController extends Controller
                 }
 
                 if ($configChanged || $forceSync) {
-                    // 1. Save config directly through go2rtc API (works regardless of file ownership/working dir)
+                    // 1. Save config directly through go2rtc API (writes using go2rtc process permissions)
                     try {
                         Http::timeout(2)
                             ->withBody($yamlContent, 'application/yaml')
@@ -253,22 +275,35 @@ class CctvController extends Controller
                     } catch (\Exception $e) {
                     }
 
-                    // 2. Dynamically register/replace all streams in go2rtc memory via PUT /api/streams
-                    // Includes both native RTSP source and ffmpeg H.264 fallback for H.265 cameras
+                    // 2. Restart go2rtc in-place (syscall.Exec on Linux) so it reloads ffmpeg.bin and ffmpeg.rtsp
+                    try {
+                        Http::timeout(1)->post('http://127.0.0.1:1984/api/restart');
+                    } catch (\Exception $e) {
+                    }
+
+                    usleep(350000);
+                    if (!self::isGo2RtcRunning()) {
+                        self::startGo2RtcProcess();
+                        usleep(350000);
+                    }
+
+                    // 3. Dynamically replace all streams in go2rtc memory via PUT /api/streams
                     foreach (array_chunk($streamsMap, 30, true) as $chunk) {
                         try {
                             Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($chunk) {
-                                foreach ($chunk as $name => $src) {
-                                    $fallback = "ffmpeg:{$name}#video=h264";
-                                    $url = 'http://127.0.0.1:1984/api/streams?name=' . urlencode($name)
-                                         . '&src=' . urlencode($src)
-                                         . '&src=' . urlencode($fallback);
-                                    $pool->timeout(2)->put($url);
+                                foreach ($chunk as $name => $sources) {
+                                    $query = 'name=' . urlencode($name);
+                                    foreach ((array) $sources as $src) {
+                                        $query .= '&src=' . urlencode($src);
+                                    }
+                                    $pool->timeout(2)->put('http://127.0.0.1:1984/api/streams?' . $query);
                                 }
                             });
                         } catch (\Exception $e) {
                         }
                     }
+
+                    @file_put_contents($hashPath, $newHash);
                 }
             }
         } catch (\Exception $e) {
