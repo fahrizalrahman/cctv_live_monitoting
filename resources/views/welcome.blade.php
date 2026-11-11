@@ -394,8 +394,8 @@
                     video.classList.add('hidden');
                     iframe.classList.remove('hidden');
                     
-                    // Use custom H.264 video-only go2rtc player (prevents audio-only black screen on H.265 / Uniview cameras)
-                    iframe.src = `{{ url('/go2rtc-player.html') }}?src=cctv_${cctv.id}`;
+                    // Use go2rtc ultra-low latency WebRTC/MSE player (supports all standard cameras natively)
+                    iframe.src = `{{ url('/') }}/go2rtc/stream.html?src=cctv_${cctv.id}&mode=mse,webrtc,mp4,mjpeg`;
                     
                     // Hide loading when iframe loads (go2rtc player handles its own UI)
                     iframe.onload = function() { 
