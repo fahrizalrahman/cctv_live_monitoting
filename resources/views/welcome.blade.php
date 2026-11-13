@@ -348,7 +348,7 @@
             // Helper to get playback URL based on stream protocol
             function getPlaybackUrl(cctv) {
                 if (!cctv.stream_url) return '';
-                if (cctv.stream_url.toLowerCase().startsWith('rtsp://')) {
+                if (cctv.stream_url.toLowerCase().startsWith('rtsp://') || cctv.stream_url.toLowerCase().startsWith('onvif://')) {
                     return `{{ url('/') }}/go2rtc/api/stream.m3u8?src=cctv_${cctv.id}`;
                 }
                 return cctv.stream_url;
@@ -389,7 +389,12 @@
                 video.onplaying = function() { loadingAlert.classList.add('hidden'); };
                 video.onloadeddata = function() { loadingAlert.classList.add('hidden'); };
 
-                if (cctv.stream_url && cctv.stream_url.toLowerCase().startsWith('rtsp://')) {
+                const isStreamingProtocol = cctv.stream_url && (
+                    cctv.stream_url.toLowerCase().startsWith('rtsp://') || 
+                    cctv.stream_url.toLowerCase().startsWith('onvif://')
+                );
+
+                if (isStreamingProtocol) {
                     // Use go2rtc ultra-low latency WebRTC player
                     video.classList.add('hidden');
                     iframe.classList.remove('hidden');

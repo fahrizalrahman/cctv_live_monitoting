@@ -318,7 +318,7 @@
         let streamUrl = rawUrl;
         let isMp4 = false;
         
-        if (rawUrl && rawUrl.toLowerCase().startsWith('rtsp://')) {
+        if (rawUrl && (rawUrl.toLowerCase().startsWith('rtsp://') || rawUrl.toLowerCase().startsWith('onvif://'))) {
             streamUrl = `/go2rtc/api/stream.mp4?src=cctv_${cctvId}`;
             isMp4 = true;
         }

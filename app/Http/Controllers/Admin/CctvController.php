@@ -178,7 +178,38 @@ class CctvController extends Controller
             $yamlContent = "api:\n  origin: '*'\n\nstreams:\n";
             $streamsMap = [];
 
+            // Khusus 4 kamera RW 13 Cisalak: override sementara dengan ONVIF langsung ke IP kamera (primer) & NVR (sekunder)
+            $onvifOverrides = [
+                172 => [
+                    'onvif://admin:Admin%20123@10.12.0.26:80',
+                    'onvif://admin:Admin%20123@10.11.0.8:80?channel=1'
+                ],
+                173 => [
+                    'onvif://admin:Admin%20123@10.12.0.27:80',
+                    'onvif://admin:Admin%20123@10.11.0.8:80?channel=2'
+                ],
+                174 => [
+                    'onvif://admin:Admin%20123@10.12.0.28:80',
+                    'onvif://admin:Admin%20123@10.11.0.8:80?channel=3'
+                ],
+                175 => [
+                    'onvif://admin:Admin%20123@10.12.0.29:80',
+                    'onvif://admin:Admin%20123@10.11.0.8:80?channel=4'
+                ],
+            ];
+
             foreach ($cctvs as $cctv) {
+                // Jika termasuk salah satu dari 4 kamera RW 13 Cisalak, generate stream ONVIF
+                if (isset($onvifOverrides[$cctv->id])) {
+                    $sources = $onvifOverrides[$cctv->id];
+                    $yamlContent .= "  cctv_{$cctv->id}:\n";
+                    foreach ($sources as $s) {
+                        $yamlContent .= "    - \"{$s}\"\n";
+                    }
+                    $streamsMap["cctv_{$cctv->id}"] = $sources;
+                    continue;
+                }
+
                 $rawUrl = trim($cctv->stream_url ?? '');
                 if ($rawUrl === '') {
                     continue;
@@ -192,8 +223,8 @@ class CctvController extends Controller
                     $rawUrl = explode('#', $rawUrl)[0];
                 }
 
-                if (str_starts_with(strtolower($rawUrl), 'rtsp://')) {
-                    // Encode spaces (e.g. password "Admin 123" -> "Admin%20123") so RTSP URL parser doesn't fail
+                if (str_starts_with(strtolower($rawUrl), 'rtsp://') || str_starts_with(strtolower($rawUrl), 'onvif://')) {
+                    // Encode spaces (e.g. password "Admin 123" -> "Admin%20123") so URL parser doesn't fail
                     $rawUrl = str_replace(' ', '%20', $rawUrl);
                     $escapedUrl = str_replace('"', '\"', $rawUrl);
 
@@ -202,7 +233,7 @@ class CctvController extends Controller
                 }
             }
 
-            $hashPath = sys_get_temp_dir() . '/cctv_go2rtc_synced_v7_' . md5(base_path()) . '.hash';
+            $hashPath = sys_get_temp_dir() . '/cctv_go2rtc_synced_v8_' . md5(base_path()) . '.hash';
             $runtimeYamlPath = sys_get_temp_dir() . '/cctv_go2rtc_runtime_' . md5(base_path()) . '.yaml';
             $newHash = md5($yamlContent);
             $lastHash = file_exists($hashPath) ? trim((string) @file_get_contents($hashPath)) : '';
@@ -254,9 +285,12 @@ class CctvController extends Controller
                 foreach (array_chunk($streamsMap, 30, true) as $chunk) {
                     try {
                         Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($chunk) {
-                            foreach ($chunk as $name => $src) {
-                                $url = 'http://127.0.0.1:1984/api/streams?name=' . urlencode($name) . '&src=' . urlencode($src);
-                                $pool->timeout(2)->put($url);
+                            foreach ($chunk as $name => $sources) {
+                                $query = 'name=' . urlencode($name);
+                                foreach ((array) $sources as $src) {
+                                    $query .= '&src=' . urlencode($src);
+                                }
+                                $pool->timeout(2)->put('http://127.0.0.1:1984/api/streams?' . $query);
                             }
                         });
                     } catch (\Exception $e) {
