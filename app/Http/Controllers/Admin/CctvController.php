@@ -178,35 +178,20 @@ class CctvController extends Controller
             $yamlContent = "api:\n  origin: '*'\n\nstreams:\n";
             $streamsMap = [];
 
-            // Khusus 4 kamera RW 13 Cisalak: override sementara dengan ONVIF langsung ke IP kamera (primer) & NVR (sekunder)
-            $onvifOverrides = [
-                172 => [
-                    'onvif://admin:Admin%20123@10.12.0.26:80',
-                    'onvif://admin:Admin%20123@10.11.0.8:80?channel=1'
-                ],
-                173 => [
-                    'onvif://admin:Admin%20123@10.12.0.27:80',
-                    'onvif://admin:Admin%20123@10.11.0.8:80?channel=2'
-                ],
-                174 => [
-                    'onvif://admin:Admin%20123@10.12.0.28:80',
-                    'onvif://admin:Admin%20123@10.11.0.8:80?channel=3'
-                ],
-                175 => [
-                    'onvif://admin:Admin%20123@10.12.0.29:80',
-                    'onvif://admin:Admin%20123@10.11.0.8:80?channel=4'
-                ],
+            // Khusus 4 kamera RW 13 Cisalak: arahkan ke masing-masing channel NVR (c1, c2, c3, c4)
+            $channelOverrides = [
+                172 => 'rtsp://admin:Admin%20123@10.11.0.8:554/unicast/c1/s1/live',
+                173 => 'rtsp://admin:Admin%20123@10.11.0.8:554/unicast/c2/s1/live',
+                174 => 'rtsp://admin:Admin%20123@10.11.0.8:554/unicast/c3/s1/live',
+                175 => 'rtsp://admin:Admin%20123@10.11.0.8:554/unicast/c4/s1/live',
             ];
 
             foreach ($cctvs as $cctv) {
-                // Jika termasuk salah satu dari 4 kamera RW 13 Cisalak, generate stream ONVIF
-                if (isset($onvifOverrides[$cctv->id])) {
-                    $sources = $onvifOverrides[$cctv->id];
-                    $yamlContent .= "  cctv_{$cctv->id}:\n";
-                    foreach ($sources as $s) {
-                        $yamlContent .= "    - \"{$s}\"\n";
-                    }
-                    $streamsMap["cctv_{$cctv->id}"] = $sources;
+                // Pastikan 4 kamera RW 13 Cisalak mengarah ke channel yang benar (c1..c4)
+                if (isset($channelOverrides[$cctv->id])) {
+                    $src = $channelOverrides[$cctv->id];
+                    $yamlContent .= "  cctv_{$cctv->id}: \"{$src}\"\n";
+                    $streamsMap["cctv_{$cctv->id}"] = $src;
                     continue;
                 }
 
@@ -233,7 +218,7 @@ class CctvController extends Controller
                 }
             }
 
-            $hashPath = sys_get_temp_dir() . '/cctv_go2rtc_synced_v8_' . md5(base_path()) . '.hash';
+            $hashPath = sys_get_temp_dir() . '/cctv_go2rtc_synced_v9_' . md5(base_path()) . '.hash';
             $runtimeYamlPath = sys_get_temp_dir() . '/cctv_go2rtc_runtime_' . md5(base_path()) . '.yaml';
             $newHash = md5($yamlContent);
             $lastHash = file_exists($hashPath) ? trim((string) @file_get_contents($hashPath)) : '';
