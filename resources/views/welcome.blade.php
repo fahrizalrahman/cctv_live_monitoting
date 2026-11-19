@@ -145,31 +145,28 @@
         <div id="map" class="absolute inset-0 z-10 w-full h-full"></div>
 
         <!-- Floating Navbar Logo on Top Left -->
-        <div class="absolute top-3 left-3 md:top-4 md:left-4 z-20 flex items-center gap-2.5 md:gap-3 bg-[#0d1321]/90 backdrop-blur-xl border border-slate-800/80 px-3 py-2 md:px-4 md:py-2.5 rounded-xl md:rounded-2xl shadow-xl max-w-[calc(100vw-5rem)] md:max-w-none">
+        <div class="absolute top-4 left-4 z-20 flex items-center gap-3 bg-[#0d1321]/90 backdrop-blur-xl border border-slate-800/80 px-4 py-2.5 rounded-2xl shadow-xl">
             @php
                 $appLogo = \App\Models\Setting::where('key', 'app_logo')->first();
             @endphp
             @if($appLogo && $appLogo->value)
-                <img src="{{ asset(Storage::url($appLogo->value)) }}" alt="Logo" class="h-5 md:h-6 object-contain shrink-0" />
+                <img src="{{ asset(Storage::url($appLogo->value)) }}" alt="Logo" class="h-6 object-contain" />
             @else
-                <div class="bg-indigo-600 p-1.5 md:p-2 rounded-lg md:rounded-xl text-white shadow-lg shadow-indigo-500/25 shrink-0">
-                    <i data-lucide="video" class="w-4 h-4 md:w-5 md:h-5"></i>
+                <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/25">
+                    <i data-lucide="video" class="w-5 h-5"></i>
                 </div>
             @endif
-            <div class="min-w-0">
-                <h1 class="font-extrabold text-xs md:text-sm tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent truncate">{{ $appNameDisplay }}</h1>
-                <span class="block text-[7px] md:text-[8px] text-slate-500 font-semibold tracking-widest uppercase mt-0.5">Live Streaming Maps</span>
+            <div>
+                <h1 class="font-extrabold text-sm tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">{{ $appNameDisplay }}</h1>
+                <span class="block text-[8px] text-slate-500 font-semibold tracking-widest uppercase mt-0.5">Live Streaming Maps</span>
             </div>
         </div>
 
-        <!-- Backdrop overlay when sidebar is open on mobile -->
-        <div id="mobile-sidebar-backdrop" onclick="toggleSidebar()" class="desktop-hidden hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30 transition-opacity"></div>
-
         <!-- Floating CCTV Directory Sidebar Panel on Right -->
-        <aside id="sidebar" style="width: calc(100vw - 1.5rem); max-width: 340px;" class="mobile-hidden absolute top-3 right-3 bottom-3 md:top-4 md:right-4 md:bottom-4 bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 p-4 md:p-5 flex flex-col z-40 shadow-2xl rounded-2xl md:rounded-3xl transition-all">
+        <aside id="sidebar" style="width: calc(100vw - 2rem); max-width: 320px; right: 1rem !important; top: 1rem; bottom: 1rem;" class="mobile-hidden absolute top-4 right-4 bottom-4 bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 p-5 flex flex-col z-30 shadow-2xl rounded-3xl">
             <!-- Sidebar Header & Action -->
-            <div class="flex items-center justify-between mb-4 md:mb-5 pb-3 md:pb-4 border-b border-slate-800/50">
-                <span class="text-xs md:text-sm font-bold text-slate-200">Daftar CCTV</span>
+            <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-800/50">
+                <span class="text-sm font-bold text-slate-200">Daftar CCTV</span>
                 
                 <div class="flex items-center gap-2">
                     <button onclick="toggleSidebar()" class="desktop-hidden p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl transition-all" title="Tutup">
@@ -201,7 +198,7 @@
                 </div>
             </div>
 
-            <div class="mb-4 md:mb-5 flex gap-2">
+            <div class="mb-5 flex gap-2">
                 <select id="group-filter" onchange="filterCctvs()" class="block w-full px-3 py-2 bg-[#090d16]/90 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-[11px]">
                     <option value="">Semua Group</option>
                     @foreach($groups as $group)
@@ -230,7 +227,7 @@
                             data-name="{{ $cctv->name }}"
                             data-ip="{{ $cctv->ip }}"
                             data-group="{{ $cctv->cctv_group_id }}"
-                            class="cctv-list-item w-full text-left bg-[#090d16]/40 hover:bg-slate-800/40 border border-slate-850 p-2.5 md:p-3 rounded-xl flex items-center justify-between gap-3 group transition-all">
+                            class="cctv-list-item w-full text-left bg-[#090d16]/40 hover:bg-slate-800/40 border border-slate-850 p-3 rounded-xl flex items-center justify-between gap-3 group transition-all">
                         <div class="min-w-0 flex-1">
                             <span class="block text-[11px] font-bold text-slate-300 group-hover:text-slate-100 truncate transition-colors">{{ $cctv->name }}</span>
                         </div>
@@ -249,8 +246,8 @@
         </aside>
 
         <!-- Mobile FAB to open sidebar -->
-        <button id="mobile-sidebar-toggle" onclick="toggleSidebar()" class="desktop-hidden absolute bottom-5 right-4 bg-indigo-600 hover:bg-indigo-500 text-white w-12 h-12 rounded-full shadow-xl shadow-indigo-600/40 flex items-center justify-center z-20 transition-transform active:scale-95" title="Daftar CCTV">
-            <i data-lucide="list" class="w-5 h-5"></i>
+        <button id="mobile-sidebar-toggle" onclick="toggleSidebar()" class="desktop-hidden absolute bg-indigo-600 hover:bg-indigo-500 text-white p-4 rounded-full shadow-lg shadow-indigo-600/30 flex items-center justify-center" style="bottom: 64px; right: 24px; z-index: 50;">
+            <i data-lucide="list" class="w-6 h-6"></i>
         </button>
 
         <!-- Floating Centered Video Player Modal Card (Depok style overlay) -->
