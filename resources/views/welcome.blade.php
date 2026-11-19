@@ -66,9 +66,76 @@
             /* Custom Responsive Override */
             @media (max-width: 767px) {
                 .mobile-hidden { display: none !important; }
+
+                /* Leaflet zoom controls on mobile */
+                .leaflet-bottom.leaflet-left {
+                    bottom: 20px !important;
+                    left: 14px !important;
+                }
+                .leaflet-control-zoom {
+                    border-radius: 12px !important;
+                    overflow: hidden;
+                    border: 1px solid rgba(51, 65, 85, 0.7) !important;
+                    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+                }
+                .leaflet-control-zoom a {
+                    background-color: rgba(13, 19, 33, 0.94) !important;
+                    color: #cbd5e1 !important;
+                    width: 34px !important;
+                    height: 34px !important;
+                    line-height: 34px !important;
+                    border-bottom: 1px solid rgba(51, 65, 85, 0.5) !important;
+                }
+                .leaflet-control-zoom a:last-child {
+                    border-bottom: none !important;
+                }
             }
             @media (min-width: 768px) {
                 .desktop-hidden { display: none !important; }
+            }
+
+            /* Kecamatan Badge Styling */
+            .kecamatan-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                padding: 3px 9px;
+                border-radius: 9999px;
+                background: rgba(13, 19, 33, 0.88);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                border: 1px solid rgba(52, 211, 153, 0.45);
+                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 10px rgba(16, 185, 129, 0.25);
+                color: #6ee7b7;
+                font-family: 'Outfit', sans-serif;
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: 0.05em;
+                white-space: nowrap;
+                pointer-events: none;
+                transition: opacity 0.3s ease;
+                user-select: none;
+            }
+            .kecamatan-badge::before {
+                content: '';
+                display: inline-block;
+                width: 5px;
+                height: 5px;
+                border-radius: 50%;
+                background: #34d399;
+                box-shadow: 0 0 6px #34d399;
+            }
+
+            @media (max-width: 767px) {
+                .kecamatan-badge {
+                    font-size: 8px !important;
+                    padding: 2px 7px !important;
+                    gap: 3px !important;
+                }
+                .kecamatan-badge::before {
+                    width: 4px !important;
+                    height: 4px !important;
+                }
             }
         </style>
     </head>
@@ -78,28 +145,31 @@
         <div id="map" class="absolute inset-0 z-10 w-full h-full"></div>
 
         <!-- Floating Navbar Logo on Top Left -->
-        <div class="absolute top-4 left-4 z-20 flex items-center gap-3 bg-[#0d1321]/90 backdrop-blur-xl border border-slate-800/80 px-4 py-2.5 rounded-2xl shadow-xl">
+        <div class="absolute top-3 left-3 md:top-4 md:left-4 z-20 flex items-center gap-2.5 md:gap-3 bg-[#0d1321]/90 backdrop-blur-xl border border-slate-800/80 px-3 py-2 md:px-4 md:py-2.5 rounded-xl md:rounded-2xl shadow-xl max-w-[calc(100vw-5rem)] md:max-w-none">
             @php
                 $appLogo = \App\Models\Setting::where('key', 'app_logo')->first();
             @endphp
             @if($appLogo && $appLogo->value)
-                <img src="{{ asset(Storage::url($appLogo->value)) }}" alt="Logo" class="h-6 object-contain" />
+                <img src="{{ asset(Storage::url($appLogo->value)) }}" alt="Logo" class="h-5 md:h-6 object-contain shrink-0" />
             @else
-                <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/25">
-                    <i data-lucide="video" class="w-5 h-5"></i>
+                <div class="bg-indigo-600 p-1.5 md:p-2 rounded-lg md:rounded-xl text-white shadow-lg shadow-indigo-500/25 shrink-0">
+                    <i data-lucide="video" class="w-4 h-4 md:w-5 md:h-5"></i>
                 </div>
             @endif
-            <div>
-                <h1 class="font-extrabold text-sm tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">{{ $appNameDisplay }}</h1>
-                <span class="block text-[8px] text-slate-500 font-semibold tracking-widest uppercase mt-0.5">Live Streaming Maps</span>
+            <div class="min-w-0">
+                <h1 class="font-extrabold text-xs md:text-sm tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent truncate">{{ $appNameDisplay }}</h1>
+                <span class="block text-[7px] md:text-[8px] text-slate-500 font-semibold tracking-widest uppercase mt-0.5">Live Streaming Maps</span>
             </div>
         </div>
 
+        <!-- Backdrop overlay when sidebar is open on mobile -->
+        <div id="mobile-sidebar-backdrop" onclick="toggleSidebar()" class="desktop-hidden hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30 transition-opacity"></div>
+
         <!-- Floating CCTV Directory Sidebar Panel on Right -->
-        <aside id="sidebar" style="width: calc(100vw - 2rem); max-width: 320px;" class="mobile-hidden absolute top-4 right-4 bottom-4 bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 p-5 flex flex-col z-30 shadow-2xl rounded-3xl">
+        <aside id="sidebar" style="width: calc(100vw - 1.5rem); max-width: 340px;" class="mobile-hidden absolute top-3 right-3 bottom-3 md:top-4 md:right-4 md:bottom-4 bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 p-4 md:p-5 flex flex-col z-40 shadow-2xl rounded-2xl md:rounded-3xl transition-all">
             <!-- Sidebar Header & Action -->
-            <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-800/50">
-                <span class="text-sm font-bold text-slate-200">Daftar CCTV</span>
+            <div class="flex items-center justify-between mb-4 md:mb-5 pb-3 md:pb-4 border-b border-slate-800/50">
+                <span class="text-xs md:text-sm font-bold text-slate-200">Daftar CCTV</span>
                 
                 <div class="flex items-center gap-2">
                     <button onclick="toggleSidebar()" class="desktop-hidden p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl transition-all" title="Tutup">
@@ -131,7 +201,7 @@
                 </div>
             </div>
 
-            <div class="mb-5 flex gap-2">
+            <div class="mb-4 md:mb-5 flex gap-2">
                 <select id="group-filter" onchange="filterCctvs()" class="block w-full px-3 py-2 bg-[#090d16]/90 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all text-[11px]">
                     <option value="">Semua Group</option>
                     @foreach($groups as $group)
@@ -160,7 +230,7 @@
                             data-name="{{ $cctv->name }}"
                             data-ip="{{ $cctv->ip }}"
                             data-group="{{ $cctv->cctv_group_id }}"
-                            class="cctv-list-item w-full text-left bg-[#090d16]/40 hover:bg-slate-800/40 border border-slate-850 p-3 rounded-xl flex items-center justify-between gap-3 group transition-all">
+                            class="cctv-list-item w-full text-left bg-[#090d16]/40 hover:bg-slate-800/40 border border-slate-850 p-2.5 md:p-3 rounded-xl flex items-center justify-between gap-3 group transition-all">
                         <div class="min-w-0 flex-1">
                             <span class="block text-[11px] font-bold text-slate-300 group-hover:text-slate-100 truncate transition-colors">{{ $cctv->name }}</span>
                         </div>
@@ -179,16 +249,16 @@
         </aside>
 
         <!-- Mobile FAB to open sidebar -->
-        <button id="mobile-sidebar-toggle" onclick="toggleSidebar()" class="desktop-hidden absolute bg-indigo-600 hover:bg-indigo-500 text-white p-4 rounded-full shadow-lg shadow-indigo-600/30 flex items-center justify-center" style="bottom: 64px; right: 24px; z-index: 50;">
-            <i data-lucide="list" class="w-6 h-6"></i>
+        <button id="mobile-sidebar-toggle" onclick="toggleSidebar()" class="desktop-hidden absolute bottom-5 right-4 bg-indigo-600 hover:bg-indigo-500 text-white w-12 h-12 rounded-full shadow-xl shadow-indigo-600/40 flex items-center justify-center z-20 transition-transform active:scale-95" title="Daftar CCTV">
+            <i data-lucide="list" class="w-5 h-5"></i>
         </button>
 
         <!-- Floating Centered Video Player Modal Card (Depok style overlay) -->
-        <div id="stream-modal" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl z-40 transform scale-95 opacity-0 pointer-events-none transition-all duration-300 flex flex-col">
+        <div id="stream-modal" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-1.5rem)] sm:w-full sm:max-w-xl md:max-w-2xl bg-[#0d1321]/95 backdrop-blur-xl border border-slate-800/80 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl z-50 transform scale-95 opacity-0 pointer-events-none transition-all duration-300 flex flex-col">
             <!-- Modal Header -->
-            <div class="bg-[#131b2e] px-6 py-4 flex items-center justify-between border-b border-slate-800/80">
-                <h3 id="modal-name" class="font-bold text-slate-200 text-sm">PASAR PUCUNG 1</h3>
-                <button onclick="closeStreamModal()" class="p-1.5 bg-slate-800/40 text-slate-400 hover:text-slate-200 rounded-lg border border-slate-800 transition-all">
+            <div class="bg-[#131b2e] px-4 py-3 md:px-6 md:py-4 flex items-center justify-between border-b border-slate-800/80 gap-2">
+                <h3 id="modal-name" class="font-bold text-slate-200 text-xs sm:text-sm truncate">PASAR PUCUNG 1</h3>
+                <button onclick="closeStreamModal()" class="shrink-0 p-1.5 bg-slate-800/50 text-slate-400 hover:text-slate-200 rounded-lg border border-slate-700/60 transition-all">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -239,7 +309,7 @@
             @endif
 
             <!-- Modal Footer -->
-            <div class="bg-[#131b2e] px-6 py-3 flex items-center justify-between text-xs text-slate-400 font-medium border-t border-slate-800/80">
+            <div class="bg-[#131b2e] px-4 py-2.5 md:px-6 md:py-3 flex items-center justify-between text-[11px] md:text-xs text-slate-400 font-medium border-t border-slate-800/80">
                 <span class="flex items-center gap-1.5 text-emerald-400">
                     <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>Live</span>
@@ -258,6 +328,141 @@
             const markers = {};
             let map;
             let currentHls = null;
+            let depokBounds = null;
+            let depokFocusLayers = [];
+
+            // Basemap Tile Layers
+            const baseLayers = {
+                sat: L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                    attribution: '&copy; Google Maps',
+                    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                    maxZoom: 20
+                }),
+                dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; CARTO &copy; OpenStreetMap',
+                    subdomains: 'abcd',
+                    maxZoom: 20
+                }),
+                osm: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; CARTO &copy; OpenStreetMap',
+                    subdomains: 'abcd',
+                    maxZoom: 20
+                })
+            };
+            let currentBaseLayer = 'sat';
+
+            function switchBaseMap(type) {
+                if (currentBaseLayer === type) return;
+                map.removeLayer(baseLayers[currentBaseLayer]);
+                baseLayers[type].addTo(map);
+                baseLayers[type].bringToBack();
+                currentBaseLayer = type;
+
+                // Update button styles
+                ['sat', 'dark', 'osm'].forEach(m => {
+                    const btn = document.getElementById(`btn-mode-${m}`);
+                    if (!btn) return;
+                    if (m === type) {
+                        btn.className = 'px-2.5 py-1.5 rounded-xl text-[11px] font-semibold bg-indigo-600 text-white transition-all shadow-sm';
+                    } else {
+                        btn.className = 'px-2.5 py-1.5 rounded-xl text-[11px] font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-all';
+                    }
+                });
+            }
+
+            function loadDepokFocusArea() {
+                fetch('{{ asset("geojson/depok_focus_area.geojson") }}')
+                    .then(res => res.json())
+                    .then(data => {
+                        // 1. Inverted Mask (meredupkan/menggelapkan area di luar Kota Depok)
+                        const maskFeature = data.features.find(f => f.properties && f.properties.type === 'mask');
+                        if (maskFeature) {
+                            const maskLayer = L.geoJSON(maskFeature, {
+                                style: {
+                                    fillColor: '#070b13',
+                                    fillOpacity: 0.70,
+                                    stroke: false,
+                                    interactive: false
+                                }
+                            }).addTo(map);
+                            depokFocusLayers.push(maskLayer);
+                        }
+
+                        // 2. Garis Batas Kota Depok (Glow Stroke + Crisp Core Line)
+                        const borderFeature = data.features.find(f => f.properties && f.properties.type === 'border');
+                        if (borderFeature) {
+                            // Lapisan glow neon luar
+                            const glowLayer = L.geoJSON(borderFeature, {
+                                style: {
+                                    color: '#10b981',
+                                    weight: 8,
+                                    opacity: 0.35,
+                                    fill: false,
+                                    lineCap: 'round',
+                                    lineJoin: 'round',
+                                    interactive: false
+                                }
+                            }).addTo(map);
+                            depokFocusLayers.push(glowLayer);
+
+                            // Lapisan garis tegas neon dengan aksen warna dalam halus
+                            const borderLayer = L.geoJSON(borderFeature, {
+                                style: {
+                                    color: '#34d399',
+                                    weight: 2.5,
+                                    opacity: 0.95,
+                                    fillColor: '#10b981',
+                                    fillOpacity: 0.05,
+                                    lineCap: 'round',
+                                    lineJoin: 'round',
+                                    interactive: false
+                                }
+                            }).addTo(map);
+                            depokFocusLayers.push(borderLayer);
+
+                            depokBounds = borderLayer.getBounds();
+                            
+                            // Fokuskan pandangan awal ke Kota Depok (responsif mobile)
+                            const isMobile = window.innerWidth < 768;
+                            map.fitBounds(depokBounds, { padding: isMobile ? [15, 15] : [35, 35] });
+                            map.setMaxBounds(depokBounds.pad(isMobile ? 0.45 : 0.35));
+                            map.setMinZoom(isMobile ? 10 : 11);
+                        }
+
+                        // 3. Label/Badge Kecamatan di Kota Depok
+                        const kecFeatures = data.features.filter(f => f.properties && f.properties.type === 'kecamatan_point');
+                        kecFeatures.forEach(feat => {
+                            const coords = feat.geometry.coordinates;
+                            const kecIcon = L.divIcon({
+                                className: 'custom-kec-marker',
+                                html: `
+                                    <div class="kecamatan-badge">
+                                        <span>${feat.properties.name}</span>
+                                    </div>
+                                `,
+                                iconSize: [120, 24],
+                                iconAnchor: [60, 12]
+                            });
+                            const kecMarker = L.marker([coords[1], coords[0]], { 
+                                icon: kecIcon, 
+                                interactive: false 
+                            }).addTo(map);
+                            depokFocusLayers.push(kecMarker);
+                        });
+                    })
+                    .catch(err => {
+                        console.warn('Gagal memuat batas fokus Depok:', err);
+                    });
+            }
+
+            function focusOnDepok() {
+                const isMobile = window.innerWidth < 768;
+                if (depokBounds) {
+                    map.fitBounds(depokBounds, { padding: isMobile ? [15, 15] : [35, 35] });
+                } else {
+                    map.setView([{{ $defaultLat }}, {{ $defaultLng }}], isMobile ? {{ $defaultZoom }} - 1 : {{ $defaultZoom }});
+                }
+            }
 
             // Initialize Map
             function initMap() {
@@ -275,12 +480,23 @@
                     position: 'bottomleft'
                 }).addTo(map);
 
-                // Google Maps Satellite Hybrid (Earth style)
-                L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-                    attribution: '&copy; Google Maps',
-                    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-                    maxZoom: 20
-                }).addTo(map);
+                // Default Tile Layer: Google Maps Satellite Hybrid
+                baseLayers.sat.addTo(map);
+
+                // Load Depok Focus Area & Boundary Mask
+                loadDepokFocusArea();
+
+                // Dynamic fade on kecamatan badges when user zooms in close to street level
+                map.on('zoomend', () => {
+                    const z = map.getZoom();
+                    document.querySelectorAll('.kecamatan-badge').forEach(el => {
+                        if (z >= 16) {
+                            el.style.opacity = '0.35';
+                        } else {
+                            el.style.opacity = '1';
+                        }
+                    });
+                });
 
                 // Add markers
                 cctvs.forEach(cctv => {
@@ -338,8 +554,8 @@
                     }
                 });
 
-                // Set View to bounds if there are active markers
-                if (cctvs.length > 0) {
+                // If depok focus bounds are not yet loaded, fallback to active markers bounds
+                if (!depokBounds && cctvs.length > 0) {
                     const group = new L.featureGroup(Object.values(markers));
                     map.fitBounds(group.getBounds().pad(0.2));
                 }
@@ -356,6 +572,14 @@
 
             // Show CCTV Stream in modal overlay (Depok style)
             function showCctvInModal(cctv) {
+                // Close sidebar on mobile so video modal is not obstructed
+                if (window.innerWidth < 768) {
+                    const sidebar = document.getElementById('sidebar');
+                    if (sidebar && !sidebar.classList.contains('mobile-hidden')) {
+                        toggleSidebar();
+                    }
+                }
+
                 // Focus sidebar list item styling
                 document.querySelectorAll('.cctv-list-item').forEach(item => {
                     item.classList.remove('border-indigo-500', 'bg-indigo-600/5');
@@ -475,7 +699,14 @@
                 const marker = markers[cctvId];
                 
                 if (cctv && marker) {
-                    map.setView(marker.getLatLng(), 15);
+                    // Close sidebar on mobile so video modal is displayed prominently
+                    if (window.innerWidth < 768) {
+                        const sidebar = document.getElementById('sidebar');
+                        if (sidebar && !sidebar.classList.contains('mobile-hidden')) {
+                            toggleSidebar();
+                        }
+                    }
+                    map.setView(marker.getLatLng(), 16);
                     showCctvInModal(cctv);
                 }
             }
@@ -540,12 +771,20 @@
             function toggleSidebar() {
                 const sidebar = document.getElementById('sidebar');
                 const fab = document.getElementById('mobile-sidebar-toggle');
+                const backdrop = document.getElementById('mobile-sidebar-backdrop');
                 
-                // Toggle visibility on mobile
+                const isOpening = sidebar.classList.contains('mobile-hidden');
+                
                 sidebar.classList.toggle('mobile-hidden');
-                
-                // Hide FAB when sidebar is open
                 fab.classList.toggle('mobile-hidden');
+                
+                if (backdrop) {
+                    if (isOpening) {
+                        backdrop.classList.remove('hidden');
+                    } else {
+                        backdrop.classList.add('hidden');
+                    }
+                }
                 
                 setTimeout(() => { map.invalidateSize(); }, 350);
             }
