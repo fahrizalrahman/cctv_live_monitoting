@@ -186,6 +186,7 @@
 
 @push('scripts')
 <script>
+    const allowedCctvIds = @json($cctvs->pluck('id'));
     let currentItemsPerView = 3;
     let activePlayers = {}; // Keep references to active Hls instances to destroy them properly
     let currentPage = 0;
@@ -421,13 +422,13 @@
             let onlineCount = 0;
             let offlineCount = 0;
             
-            for (const status of Object.values(statuses)) {
-                if (status === 'online') {
+            allowedCctvIds.forEach(id => {
+                if (statuses[id] === 'online') {
                     onlineCount++;
                 } else {
                     offlineCount++;
                 }
-            }
+            });
             
             // Update the filtered list of CCTVs to only include online ones
             allCctvs = masterCctvs.filter(id => statuses[id] === 'online');
